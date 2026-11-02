@@ -161,7 +161,7 @@ function Shell({ editLang, setEditLang }) {
           </div>
 
           <span className="dash__user">
-            <Icon name="user" size={18} /> {credentials.username}
+            <Icon name="user" size={18} /> {credentials?.username || 'admin'}
           </span>
         </header>
         <div className="dash__content" key={`${active}-${editLang}`}>
