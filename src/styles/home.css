@@ -2306,7 +2306,7 @@ a.gx-tab.gx-tab--all:hover {
 
   display: flex;
   flex-wrap: nowrap;
-  justify-content: center;
+   justify-content: center;
   align-items: stretch;
 
   gap: var(--ax-gap);
@@ -2320,10 +2320,6 @@ a.gx-tab.gx-tab--all:hover {
 }
 .ax-card {
   flex: 0 0 calc(
-    (100% - (var(--per-view, 5) - 1) * var(--ax-gap))
-    / var(--per-view, 5)
-  );
-  max-width: calc(
     (100% - (var(--per-view, 5) - 1) * var(--ax-gap))
     / var(--per-view, 5)
   );
@@ -2616,6 +2612,18 @@ html[dir='rtl'] .ax-card::after {
     font-size: 0.78rem;
   }
 }
+
+/* Accessibility */
+@media (prefers-reduced-motion: reduce) {
+  .ax-card,
+  .ax-card::before,
+  .ax-card::after,
+  .ax-card__logo {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+
 /* ---- testimonials ---- */
 .tx-slider {
   position: relative;
