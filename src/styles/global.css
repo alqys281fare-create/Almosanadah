@@ -1,0 +1,335 @@
+/* ============ Fonts ============
+   Arabic  -> Madani   (local files in /public/fonts, see README-FONTS.md)
+   English -> Poppins  (Google Fonts, loaded in index.html)               */
+@font-face {
+  font-family: 'Madani';
+  src: local('Madani'), local('Madani Arabic'),
+    url('/fonts/Madani-Regular.woff2') format('woff2'),
+    url('/fonts/Madani-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Madani';
+  src: local('Madani Medium'), local('Madani Arabic Medium'),
+    url('/fonts/Madani-Medium.woff2') format('woff2'),
+    url('/fonts/Madani-Medium.ttf') format('truetype');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Madani';
+  src: local('Madani Bold'), local('Madani Arabic Bold'),
+    url('/fonts/Madani-Bold.woff2') format('woff2'),
+    url('/fonts/Madani-Bold.ttf') format('truetype');
+  font-weight: 700 800;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* ============ Design tokens ============ */
+:root {
+  --red:#AB1A37 ;
+  --red-dark: #ba0c29;
+  --red-soft: #fde8ec;
+  --red-rgb: 171, 26, 55;
+  --navy: #0D3E6D;
+  --navy-trans: #0d2a45d4;
+  --navy-dark: #111c42;
+  --ink: #2a2f45;
+  --muted: #6b7190;
+  --line: #e6e8f0;
+  --bg: #f5f6fa;
+  --card: #ffffff;
+  --radius: 18px;
+  --radius-sm: 10px;
+  --shadow-sm: 0 4px 14px rgba(27, 42, 92, 0.08);
+  --shadow-md: 0 14px 34px rgba(27, 42, 92, 0.14);
+  --shadow-red: 0 10px 24px rgba(var(--red-rgb), 0.35);
+  --ease: cubic-bezier(0.22, 1, 0.36, 1);
+  --container: 1200px;
+  --font: 'Madani', 'Segoe UI', Tahoma, system-ui, sans-serif;
+  --font-ar: 'Madani', 'Segoe UI', Tahoma, system-ui, sans-serif;
+  --font-en: 'Poppins', system-ui, -apple-system, 'Segoe UI', sans-serif;
+
+  /* first-screen layout (topbar + header + hero + features = 100vh) */
+  --topbar-h: 48px;
+  --header-h: 76px;
+  --features-h: 150px;
+  --screen-h: 100vh;
+  :root {
+  --fs-base: clamp(2rem, 2rem + 2vw, 3rem);
+}
+}
+
+/* English -> Poppins (Madani stays as the fallback for any Arabic glyphs) */
+:root[lang='en'] {
+  --font: 'Poppins', 'Madani', system-ui, -apple-system, 'Segoe UI', sans-serif;
+}
+/* Poppins looks larger than Madani at the same size, so the English site is scaled down a little
+   (16px -> 15px root; every rem-based size follows). The admin dashboard keeps its normal size. */
+html[lang='en']:not([data-area='admin']) {
+  font-size: 93.75%;
+}
+@supports (height: 100dvh) {
+  :root {
+    --screen-h: 100dvh;
+  }
+}
+
+/* ============ Reset ============ */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 90px;
+  -webkit-text-size-adjust: 100%;
+}
+body {
+  margin: 0;
+  font-family: var(--font);
+  font-size: var(--fs-base);
+  color: var(--ink);
+  background: var(--bg);
+  line-height: 1.65;
+  text-rendering: optimizeLegibility;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+img,
+svg {
+  max-width: 100%;
+  display: block;
+}
+a {
+  color: inherit;
+  text-decoration: none;
+}
+button,
+input,
+select,
+textarea {
+  font: inherit;
+  font-family: inherit;
+  color: inherit;
+}
+button {
+  cursor: pointer;
+  border: 0;
+  background: none;
+}
+ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+h1,
+h2,
+h3,
+h4,
+p {
+  margin: 0;
+}
+:focus-visible {
+  outline: 3px solid rgba(var(--red-rgb), 0.45);
+  outline-offset: 2px;
+}
+::selection {
+  background: var(--red);
+  color: #fff;
+}
+
+.container {
+  width: min(100% - 32px, var(--container));
+  margin-inline: auto;
+}
+.icon {
+  flex-shrink: 0;
+}
+
+/* ============ Buttons ============ */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 22px;
+  border-radius: 999px;
+  font-weight: 700;
+  transition: transform 0.3s var(--ease), box-shadow 0.3s var(--ease), background 0.3s;
+  position: relative;
+  overflow: hidden;
+}
+.btn--primary {
+  background: linear-gradient(135deg, var(--red), var(--red-dark));
+  color: #fff;
+  
+}
+.btn--primary::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(110deg, transparent 30%, rgba(255, 255, 255, 0.35) 50%, transparent 70%);
+  transform: translateX(120%);
+  transition: transform 0.7s var(--ease);
+}
+.btn--primary:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 16px 30px rgba(var(--red-rgb), 0.45);
+}
+.btn--primary:hover::after {
+  transform: translateX(-120%);
+}
+.btn--primary:active {
+  transform: translateY(-1px) scale(0.98);
+}
+.btn--ghost {
+  background: #fff;
+  color: var(--navy);
+  border: 1.5px solid var(--line);
+}
+.btn--ghost:hover {
+  border-color: var(--red);
+  color: var(--red);
+  transform: translateY(-2px);
+}
+.btn--sm {
+  padding: 7px 18px;
+  font-size: 0.9rem;
+}
+.btn--lg {
+  padding: 14px 34px;
+  font-size: 1.05rem;
+}
+.btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* ============ Scroll reveal ============ */
+.reveal {
+  opacity: 0;
+  transition: opacity 0.9s var(--ease), transform 0.9s var(--ease);
+  will-change: transform, opacity;
+}
+.reveal--up {
+  transform: translateY(40px);
+}
+.reveal--down {
+  transform: translateY(-40px);
+}
+.reveal--left {
+  transform: translateX(-60px);
+}
+.reveal--right {
+  transform: translateX(60px);
+}
+.reveal--zoom {
+  transform: scale(0.85);
+}
+.reveal.is-visible {
+  opacity: 1;
+  transform: none;
+}
+
+/* ============ Keyframes ============ */
+@keyframes float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-14px);
+  }
+}
+@keyframes drift {
+  0%,
+  100% {
+    transform: translate(0, 0) scale(1);
+  }
+  50% {
+    transform: translate(30px, -20px) scale(1.08);
+  }
+}
+@keyframes pop {
+  from {
+    opacity: 0;
+    transform: translateY(30px) scale(0.94);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes twinkle {
+  0%,
+  100% {
+    opacity: 0.35;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+@keyframes pulse {
+  0% {
+    transform: scale(0.6);
+    opacity: 0.8;
+  }
+  100% {
+    transform: scale(2.2);
+    opacity: 0;
+  }
+}
+@keyframes shine {
+  to {
+    background-position: 200% center;
+  }
+}
+
+/* ============ Page loader ============ */
+.page-loader {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+}
+.page-loader span {
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  border: 4px solid var(--red-soft);
+  border-top-color: var(--red);
+  animation: spin 0.8s linear infinite;
+}
+
+/* ============ Accessibility ============ */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  .reveal {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* Poppins has a larger x-height than Madani: tighten the rhythm a little */
+:root[lang='en'] body {
+  line-height: 1.6;
+  letter-spacing: -0.005em;
+}

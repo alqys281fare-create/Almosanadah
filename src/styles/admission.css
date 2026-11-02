@@ -1,0 +1,450 @@
+/* ==========================================================================
+   admission.css — «قواعد القبول» page (.adm). Load after design.css / footer.css.
+   Same visual language as the home page: shared section titles, animated dividers,
+   tinted backgrounds, white cards, red/navy accents. Theme variables only.
+   ========================================================================== */
+
+.adm-sec {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  padding-block: clamp(46px, 6vw, 84px);
+}
+.adm-sec > .container {
+  position: relative;
+  z-index: 2;
+}
+
+/* ------------------------------------------------------------------ intro + steps */
+.adm-steps {
+  background-color: var(--card);
+  background-image:
+    radial-gradient(circle at 92% 8%, color-mix(in srgb, var(--red) 8%, transparent), transparent 40%),
+    radial-gradient(circle at 6% 92%, color-mix(in srgb, var(--navy) 8%, transparent), transparent 42%);
+}
+.adm-intro {
+  max-width: 860px;
+  margin: 0 auto clamp(34px, 5vw, 56px);
+  text-align: center;
+}
+.adm-intro h2 {
+  position: relative;
+  margin: 0 0 22px;
+  padding-bottom: 16px;
+  font-size: clamp(1.5rem, 1.1rem + 1.6vw, 2.3rem);
+  color: var(--navy);
+}
+.adm-intro h2::after {
+  content: '';
+  position: absolute;
+  inset-inline: 0;
+  bottom: 0;
+  width: 70px;
+  height: 4px;
+  margin-inline: auto;
+  border-radius: 4px;
+  background: linear-gradient(90deg, var(--red), var(--navy));
+  animation: aboutBar 3.2s ease-in-out infinite;
+}
+.adm-intro p {
+  margin: 0;
+  font-size: clamp(1rem, 0.9rem + 0.4vw, 1.2rem);
+  line-height: 2;
+  color: var(--ink);
+}
+
+/* numbered timeline */
+.adm-steps__list {
+  --gap: clamp(14px, 2vw, 26px);
+  display: grid;
+  grid-template-columns: repeat(var(--n, 5), minmax(0, 1fr));
+  gap: var(--gap);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.adm-step {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  align-content: start;
+  gap: 8px;
+  padding: 0 6px;
+  text-align: center;
+}
+/* line that links this badge to the next one, drawing itself when revealed */
+.adm-step:not(:last-child)::before {
+  content: '';
+  position: absolute;
+  top: 38px;
+  inset-inline-start: calc(50% + 46px);
+  width: calc(100% + var(--gap) - 92px);
+  height: 3px;
+  border-radius: 3px;
+  background: repeating-linear-gradient(90deg, var(--red) 0 8px, transparent 8px 14px);
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform 0.9s var(--ease);
+  transition-delay: calc(0.35s + var(--i) * 0.28s);
+}
+html[dir='rtl'] .adm-step:not(:last-child)::before {
+  transform-origin: right center;
+}
+.reveal.is-visible .adm-step:not(:last-child)::before {
+  transform: scaleX(1);
+}
+.adm-step__badge {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 76px;
+  height: 76px;
+  border-radius: 50%;
+  color: #fff;
+  background: linear-gradient(135deg, var(--red), var(--red-dark));
+  box-shadow: 0 16px 30px -12px rgba(var(--red-rgb), 0.7);
+  transition: transform 0.45s var(--ease-spring);
+}
+.adm-step__badge::after {
+  content: '';
+  position: absolute;
+  inset: -7px;
+  border-radius: 50%;
+  border: 1.5px dashed color-mix(in srgb, var(--red) 55%, transparent);
+  animation: spin 26s linear infinite;
+}
+.adm-step__badge b {
+  position: absolute;
+  inset-block-start: -4px;
+  inset-inline-end: -4px;
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--navy);
+  border: 2px solid var(--card);
+  font-size: 0.8rem;
+}
+.adm-step:hover .adm-step__badge {
+  transform: translateY(-6px) scale(1.08);
+}
+.adm-step h3 {
+  margin: 12px 0 0;
+  font-size: 1.05rem;
+  color: var(--navy);
+}
+.adm-step p {
+  margin: 0;
+  max-width: 24ch;
+  font-size: 0.88rem;
+  line-height: 1.9;
+  color: var(--muted);
+}
+
+/* ------------------------------------------------------------------ conditions + documents */
+.adm-req {
+  padding-top: calc(var(--sd-h) + clamp(18px, 3vw, 38px));
+  background-color: var(--bg);
+  background-image: radial-gradient(color-mix(in srgb, var(--navy) 14%, transparent) 1.2px, transparent 1.7px);
+  background-size: 26px 26px;
+}
+.adm-req::before,
+.adm-req::after {
+  content: '';
+  position: absolute;
+  z-index: 0;
+  width: clamp(260px, 34vw, 500px);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  pointer-events: none;
+  filter: blur(14px);
+  animation: orbDrift 20s ease-in-out infinite;
+}
+.adm-req::before {
+  top: 4%;
+  inset-inline-start: -12%;
+  background: radial-gradient(circle, color-mix(in srgb, var(--red) 15%, transparent), transparent 68%);
+}
+.adm-req::after {
+  bottom: -8%;
+  inset-inline-end: -10%;
+  background: radial-gradient(circle, color-mix(in srgb, var(--navy) 15%, transparent), transparent 68%);
+  animation-delay: -9s;
+  animation-direction: reverse;
+}
+.adm-req__grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr);
+  gap: clamp(20px, 3vw, 40px);
+  align-items: start;
+}
+
+.adm-card {
+  padding: clamp(20px, 3vw, 32px);
+  background: var(--card);
+  border-radius: 18px;
+  border: 1px solid var(--line, #e1e4ee);
+  border-top: 4px solid var(--red);
+  box-shadow: 0 22px 44px -30px rgba(27, 42, 92, 0.5);
+}
+.adm-cond ul {
+  display: grid;
+  gap: 16px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.adm-cond li {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  line-height: 1.9;
+  color: var(--ink);
+}
+.adm-cond__tick {
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  margin-top: 2px;
+  border-radius: 50%;
+  color: #fff;
+  background: linear-gradient(135deg, var(--red), var(--red-dark));
+  box-shadow: 0 8px 14px -6px rgba(var(--red-rgb), 0.7);
+}
+
+.adm-docs__title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 0 0 18px;
+  font-size: clamp(1.15rem, 1rem + 0.5vw, 1.4rem);
+  color: var(--navy);
+}
+.adm-docs__title::before {
+  content: '';
+  width: 26px;
+  height: 3px;
+  border-radius: 3px;
+  background: var(--red);
+}
+.adm-docs__grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+.adm-doc {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 16px;
+  background: var(--card);
+  border-radius: 14px;
+  border: 1px solid var(--line, #e1e4ee);
+  box-shadow: 0 12px 26px -20px rgba(27, 42, 92, 0.5);
+}
+.adm-doc:hover {
+  border-color: color-mix(in srgb, var(--red) 45%, transparent);
+  box-shadow: 0 18px 32px -16px rgba(var(--red-rgb), 0.4);
+}
+.adm-doc__icon {
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  width: 46px;
+  height: 46px;
+  border-radius: 12px;
+  color: var(--red);
+  background: color-mix(in srgb, var(--red) 10%, var(--card));
+  transition: transform 0.4s var(--ease-spring), background 0.3s, color 0.3s;
+}
+.adm-doc:hover .adm-doc__icon {
+  transform: rotate(-8deg) scale(1.1);
+  color: #fff;
+  background: var(--red);
+}
+.adm-doc strong {
+  display: block;
+  margin-bottom: 4px;
+  font-size: 0.95rem;
+  color: var(--navy);
+}
+.adm-doc p {
+  margin: 0;
+  font-size: 0.82rem;
+  line-height: 1.8;
+  color: var(--muted);
+}
+
+/* important notes */
+.adm-notes {
+  margin-top: clamp(24px, 4vw, 40px);
+  padding: 20px clamp(18px, 3vw, 30px);
+  border-radius: 16px;
+  background: color-mix(in srgb, var(--red) 6%, var(--card));
+  border: 1px solid color-mix(in srgb, var(--red) 28%, transparent);
+  border-inline-start: 5px solid var(--red);
+}
+.adm-notes h3 {
+  margin: 0 0 10px;
+  font-size: 1.05rem;
+  color: var(--red);
+}
+.adm-notes ul {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0 1.2em;
+  color: var(--ink);
+  line-height: 1.9;
+  font-size: 0.93rem;
+}
+.adm-notes li::marker {
+  color: var(--red);
+}
+
+/* ------------------------------------------------------------------ call to action */
+.adm-cta {
+  padding-top: calc(var(--sd-h) + clamp(24px, 4vw, 48px));
+  padding-bottom: clamp(70px, 8vw, 110px);
+  color: #fff;
+  background: linear-gradient(180deg, var(--navy-dark) 0%, var(--tone-stats-bottom) 100%);
+}
+.adm-cta::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.06) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.06) 1px, transparent 1px);
+  background-size: 46px 46px;
+  -webkit-mask-image: radial-gradient(ellipse at 50% 55%, #000 25%, transparent 78%);
+  mask-image: radial-gradient(ellipse at 50% 55%, #000 25%, transparent 78%);
+}
+.adm-cta::after {
+  content: '';
+  position: absolute;
+  z-index: 0;
+  top: -20%;
+  inset-inline-end: -10%;
+  width: clamp(280px, 38vw, 560px);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  pointer-events: none;
+  filter: blur(14px);
+  background: radial-gradient(circle, rgba(var(--red-rgb), 0.55), transparent 66%);
+  animation: orbDrift 20s ease-in-out infinite;
+}
+.adm-cta__box {
+  max-width: 760px;
+  margin-inline: auto;
+  padding: clamp(26px, 4vw, 44px);
+  text-align: center;
+  border-radius: 22px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  box-shadow: 0 30px 60px -30px rgba(0, 0, 0, 0.6);
+}
+.adm-cta__box h2 {
+  margin: 0 0 12px;
+  color: #fff;
+  font-size: clamp(1.4rem, 1.1rem + 1.4vw, 2.1rem);
+}
+.adm-cta__box p {
+  margin: 0 auto 26px;
+  max-width: 54ch;
+  line-height: 1.9;
+  color: rgba(255, 255, 255, 0.88);
+}
+.adm-cta__btns {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 14px;
+}
+.adm-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 13px 30px;
+  border-radius: 999px;
+  font-weight: 700;
+  transition: transform 0.35s var(--ease-spring), box-shadow 0.3s, background 0.3s, color 0.3s;
+}
+.adm-btn:hover {
+  transform: translateY(-4px);
+}
+.adm-btn--solid {
+  color: #fff;
+  background: linear-gradient(135deg, var(--red), var(--red-dark));
+  box-shadow: 0 16px 30px -12px rgba(var(--red-rgb), 0.8);
+}
+.adm-btn--line {
+  color: #fff;
+  border: 1.5px solid rgba(255, 255, 255, 0.55);
+}
+.adm-btn--line:hover {
+  background: #fff;
+  color: var(--navy);
+}
+
+/* ------------------------------------------------------------------ responsive */
+@media (max-width: 1000px) {
+  .adm-req__grid {
+    grid-template-columns: 1fr;
+  }
+}
+@media (max-width: 800px) {
+  .adm-steps__list {
+    grid-template-columns: 1fr;
+    max-width: 420px;
+    margin-inline: auto;
+    gap: 22px;
+  }
+  .adm-step {
+    grid-template-columns: 76px minmax(0, 1fr);
+    justify-items: start;
+    align-items: center;
+    gap: 2px 18px;
+    text-align: start;
+  }
+  .adm-step__badge {
+    grid-row: 1 / span 2;
+  }
+  .adm-step h3 {
+    margin: 0;
+    align-self: end;
+  }
+  .adm-step p {
+    max-width: none;
+    align-self: start;
+  }
+  .adm-step:not(:last-child)::before {
+    display: none;
+  }
+}
+@media (max-width: 520px) {
+  .adm-docs__grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .adm-intro h2::after,
+  .adm-step__badge::after,
+  .adm-req::before,
+  .adm-req::after,
+  .adm-cta::after {
+    animation: none !important;
+  }
+  .adm-step:not(:last-child)::before {
+    transform: scaleX(1);
+    transition: none;
+  }
+}
