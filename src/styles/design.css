@@ -123,11 +123,11 @@ html[dir='rtl'] .scroll-progress span {
   .ad-rail {
     display: flex;
     flex-direction: column;
-    gap: 14px;
+    gap: 10px;
     position: sticky;
     top: calc(var(--header-h) + 1px);
     align-self: start;
-    padding: 5px 8px 0;
+    padding: 10px 5px 0;
     min-width: 0;
   }
   .ad-rail--empty {
@@ -136,7 +136,7 @@ html[dir='rtl'] .scroll-progress span {
   .ad-rail .ad-card {
     aspect-ratio: 1 / 2.3;
     /* two cards + their tags always fit in the visible part of the screen */
-    max-height: calc((100vh - var(--header-h) - 96px) / 2);
+  
   }
   /* the strip is for smaller screens only */
   .ad-strip {
@@ -146,7 +146,7 @@ html[dir='rtl'] .scroll-progress span {
 
 .ad-rail__tag {
   display: block;
-  margin-bottom: 7px;
+  margin-bottom: 0px;
   text-align: center;
   font-size: 0.62rem;
   font-weight: 700;
@@ -159,6 +159,7 @@ html[dir='rtl'] .scroll-progress span {
   position: relative;
   display: block;
   width: 100%;
+  
   aspect-ratio: 1 / 2.3;
   border-radius: 5px;
   overflow: hidden;
@@ -191,7 +192,7 @@ a.ad-card:hover {
   inset: 0;
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: fill;
 }
 
 /* built-in banner (when no poster image was uploaded) */
@@ -483,9 +484,7 @@ a.ad-card:hover {
 .stat__icon {
   color: #fff;
 }
-.stat:hover .stat__icon {
-  color: #ffb3c0;
-}
+
 .stat__value {
   color: #fff;
   font-weight: 800;
@@ -823,3 +822,4 @@ a.ad-card:hover {
     transition: none;
   }
 }
+

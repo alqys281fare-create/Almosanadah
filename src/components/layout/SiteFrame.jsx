@@ -23,7 +23,7 @@ export default function SiteFrame({ children }) {
       <AdRail side="left" />
       <div className="site-main">
         {body}
-        <AdStrip />
+       
         {hasFooter ? last : null}
       </div>
       <AdRail side="right" />

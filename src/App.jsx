@@ -14,8 +14,6 @@ import ProgramsCatalog from './components/sections/Programscatlog.jsx';
 const Login = lazy(() => import('./pages/Login.jsx'));
 const Dashboard = lazy(() => import('./pages/Dashboard.jsx'));
 
-/* Scrolls to #hash targets after a route change (e.g. "/#about" from the Branches page)
-   and back to the top when navigating to a page without a hash. */
 function ScrollManager() {
   const { pathname, hash } = useLocation();
   useEffect(() => {

@@ -4,19 +4,7 @@ import Icon from '../common/Icons.jsx';
 import { useLang } from '../../i18n/LanguageContext.jsx';
 import { slotsOf } from '../../Utils/ads.js';
 
-/*
- * Advertisements. Content comes from content.ads (dashboard → الإعلانات) and is stored PER LANGUAGE,
- * so the Arabic site only ever shows the Arabic posters and the English site only the English ones
- * (useContent() always returns the content of the current site language).
- *
- * Four positions: left-1, left-2 (left of the page) and right-1, right-2 (right of the page).
- * Each slot: { image, href, title, text }. `side` is the PHYSICAL side of the screen, whatever the
- * page direction. A slot with no image shows the built-in animated banner; a slot with no image
- * and no text is not rendered at all.
- *
- *  - <AdRail side>  two stacked posters in the empty strip beside the page (>= 1600px, see design.css)
- *  - <AdStrip />    the same four posters in a responsive grid above the footer (< 1600px)
- */
+
 export function AdCard({ slot, ads, variant = 'rail' }) {
   const { dir } = useLang();
   const { image, href, title, text } = slot;

@@ -1,4 +1,3 @@
-
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { useLocation } from "react-router-dom";
 import SmartLink from "../common/SmartLink.jsx";
@@ -59,6 +58,7 @@ export default function Header() {
   const headerRef = useRef(null);
   const innerRef = useRef(null);
   const navRef = useRef(null);
+  const navScrollRef = useRef(null);
 
   const [fit, setFit] = useState(0);
   const [measureKey, setMeasureKey] = useState(0);
@@ -147,8 +147,8 @@ export default function Header() {
     };
   }, [open]);
 
-  /* Align drawer below header */
-  useEffect(() => {
+  /* Align drawer below header — synchronous (no flash before paint) */
+  useLayoutEffect(() => {
     if (!open) return;
 
     const update = () => {
@@ -171,6 +171,13 @@ export default function Header() {
       window.removeEventListener("resize", update);
       window.removeEventListener("orientationchange", update);
     };
+  }, [open]);
+
+  /* Reset drawer scroll position each time it opens */
+  useLayoutEffect(() => {
+    if (open && navScrollRef.current) {
+      navScrollRef.current.scrollTop = 0;
+    }
   }, [open]);
 
   const isRoute = pathname !== "/";
@@ -284,7 +291,7 @@ export default function Header() {
     }
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [fit, measureKey, sig]);
+  }, [fit, measureKey, sig, open]);
 
   const compact = fit >= MAX_FIT;
 
@@ -401,7 +408,7 @@ export default function Header() {
             aria-label={t("mainNav")}
           >
 
-            {/* Mobile brand */}
+            {/* Mobile brand (fixed at top of drawer) */}
             <div className="nav__brand--mobile">
               <img src="/almosanadah.png" alt={site.name} />
 
@@ -411,62 +418,65 @@ export default function Header() {
               </div>
             </div>
 
-            {navItems.map((item, index) => {
-              const isExtra = index >= 3;
+            {/* Scrollable list of links */}
+            <div className="nav__scroll" ref={navScrollRef}>
+              {navItems.map((item, index) => {
+                const isExtra = index >= 3;
 
-              const isActive = isRoute
-                ? item.href === pathname
-                : active === item.id;
+                const isActive = isRoute
+                  ? item.href === pathname
+                  : active === item.id;
 
-              return (
+                return (
+                  <SmartLink
+                    key={item.id}
+                    href={item.href}
+                    className={[
+                      "nav__link",
+                      isActive ? "is-active" : "",
+                      item.optional ? "nav__link--optional" : "",
+                      isExtra ? "nav__link--extra" : "",
+                    ]
+                      .filter(Boolean)
+                      .join(" ")}
+                    onClick={() => go(item)}
+                    aria-current={isActive ? "page" : undefined}
+                  >
+                    {item.label}
+                  </SmartLink>
+                );
+              })}
+
+              {/* Mobile dashboard */}
+              {topbar.dashboard.show && (
                 <SmartLink
-                  key={item.id}
-                  href={item.href}
-                  className={[
-                    "nav__link",
-                    isActive ? "is-active" : "",
-                    item.optional ? "nav__link--optional" : "",
-                    isExtra ? "nav__link--extra" : "",
-                  ]
-                    .filter(Boolean)
-                    .join(" ")}
-                  onClick={() => go(item)}
-                  aria-current={isActive ? "page" : undefined}
+                  href={topbar.dashboard.href || "/dashboard"}
+                  className="nav__link nav__link--mobile"
+                  onClick={() => setOpen(false)}
                 >
-                  {item.label}
+                  {dashLabel}
                 </SmartLink>
-              );
-            })}
+              )}
 
-            {/* Mobile dashboard */}
-            {topbar.dashboard.show && (
-              <SmartLink
-                href={topbar.dashboard.href || "/dashboard"}
-                className="nav__link nav__link--mobile"
-                onClick={() => setOpen(false)}
-              >
-                {dashLabel}
-              </SmartLink>
-            )}
+              {/* Mobile language */}
+              {topbar.lang.show && (
+                <button
+                  type="button"
+                  className="nav__link nav__link--mobile nav__lang"
+                  onClick={() => {
+                    toggle();
+                    setOpen(false);
+                  }}
+                >
+                  {topbar.lang.icon && (
+                    <Icon name={topbar.lang.icon} size={18} />
+                  )}
+                  {langLabel}
+                </button>
+              )}
+            </div>
 
-            {/* Mobile language */}
-            {topbar.lang.show && (
-              <button
-                type="button"
-                className="nav__link nav__link--mobile nav__lang"
-                onClick={() => {
-                  toggle();
-                  setOpen(false);
-                }}
-              >
-                {topbar.lang.icon && (
-                  <Icon name={topbar.lang.icon} size={18} />
-                )}
-                {langLabel}
-              </button>
-            )}
-
-            {/* Mobile CTA actions */}
+            {/* Fixed footer of the drawer */}
             <div className="nav__actions-mobile">
               {actions.map((action) => (
                 <SmartLink
