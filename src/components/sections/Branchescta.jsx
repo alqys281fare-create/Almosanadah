@@ -6,8 +6,6 @@ import Icon from '../common/Icons.jsx';
 import Reveal from '../common/Reveal.jsx';
 import '../../styles/branchescta.css';
 
-// Put your picture in /public (e.g. public/branches-cta.jpg) or set content.branchesCta.image.
-const DEFAULT_IMAGE = '/branches-cta.png';
 
 const DEFAULTS = {
   ar: {
