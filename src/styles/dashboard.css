@@ -1143,3 +1143,17 @@ textarea.input {
     justify-content: flex-start;
   }
 }
+
+/* ---------- branch picker (courses / diplomas editor) ---------- */
+.bp { display: grid; gap: 10px; padding: 14px; border: 1px solid var(--line, #e3e6ef); border-radius: 14px; background: rgba(var(--red-rgb, 200, 16, 46), 0.03); }
+.bp__modes { display: flex; flex-wrap: wrap; gap: 8px; }
+.bp__mode { padding: 8px 16px; border-radius: 999px; border: 1.5px solid var(--line, #e3e6ef); background: #fff; font-weight: 700; color: var(--navy, #1b2a5c); }
+.bp__mode.is-active { background: var(--red, #c8102e); border-color: var(--red, #c8102e); color: #fff; }
+.bp__list { display: grid; gap: 12px; }
+.bp__tools { display: flex; gap: 16px; }
+.bp__group { border: 1px solid var(--line, #e3e6ef); border-radius: 12px; padding: 10px 12px 12px; background: #fff; }
+.bp__group legend { padding-inline: 6px; }
+.bp__items { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 6px 12px; margin-top: 6px; }
+.bp__check { display: inline-flex; align-items: center; gap: 8px; cursor: pointer; font-size: 0.92rem; }
+.bp__check input { width: 17px; height: 17px; accent-color: var(--red, #c8102e); }
+.bp__item.is-on { font-weight: 800; color: var(--red, #c8102e); }

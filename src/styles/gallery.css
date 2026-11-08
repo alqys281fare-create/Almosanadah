@@ -1,12 +1,11 @@
-
 .tv {
   --tv-red: var(--red);
   --tv-red-dark: var(--red-dark);
-  --tv-ms: 5000ms; 
+  --tv-ms: 5000ms;
 }
 
 @keyframes tvPulse {
-  0% { box-shadow: 0 0 0 0 rgba(var(--red-rgb), 0.55); }
+  0%   { box-shadow: 0 0 0 0 rgba(var(--red-rgb), 0.55); }
   100% { box-shadow: 0 0 0 14px rgba(var(--red-rgb), 0); }
 }
 @keyframes tvBlink {
@@ -17,7 +16,7 @@
 }
 @keyframes tvZoom {
   from { transform: scale(1); }
-  to { transform: scale(1.08); }
+  to   { transform: scale(1.08); }
 }
 
 .tv {
@@ -89,7 +88,10 @@
   font-size: 0.95rem;
   text-decoration: none;
   cursor: pointer;
-  transition: transform 0.3s var(--ease), background 0.3s, color 0.3s, box-shadow 0.3s, border-color 0.3s;
+  white-space: nowrap;
+  flex-shrink: 0;
+  transition: transform 0.3s var(--ease), background 0.3s, color 0.3s,
+              box-shadow 0.3s, border-color 0.3s;
 }
 .tv__tab:hover {
   transform: translateY(-3px);
@@ -97,7 +99,6 @@
   color: var(--tv-red);
 }
 
-/* selected channel */
 .tv__tab.is-active {
   color: #fff;
   border-color: transparent;
@@ -108,6 +109,19 @@
   color: #fff;
 }
 
+.tv__tab-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: currentColor;
+  box-shadow: 0 0 8px currentColor;
+  flex-shrink: 0;
+  visibility: hidden; /* Prevents tabs from expanding layout when selected */
+  animation: tvBlink 1.4s ease-in-out infinite;
+}
+.tv__tab.is-active .tv__tab-dot {
+  visibility: visible;
+}
 
 .tv__stage {
   display: grid;
@@ -116,14 +130,12 @@
   align-items: stretch;
 }
 
-/* the "TV" bezel */
 .tv__frame {
   position: relative;
   border-radius: 26px;
   padding: 10px;
   background: linear-gradient(145deg, var(--navy), var(--navy-dark));
 }
-/* colour glow behind the screen */
 .tv__frame::before {
   content: '';
   position: absolute;
@@ -146,7 +158,6 @@
 .tv__screen:focus-visible {
   box-shadow: 0 0 0 3px var(--tv-red);
 }
-/* scan-lines + vignette */
 .tv__screen::after {
   content: '';
   position: absolute;
@@ -158,7 +169,6 @@
     repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.025) 0 1px, transparent 1px 3px);
 }
 
-/* ---------------- slides (cross-fade) ---------------- */
 .tv__slide {
   position: absolute;
   inset: 0;
@@ -174,7 +184,6 @@
   pointer-events: auto;
 }
 .tv__slide::after {
-  /* readable caption area */
   content: '';
   position: absolute;
   inset: 0;
@@ -198,7 +207,6 @@
   background: linear-gradient(135deg, var(--navy), var(--navy-dark));
 }
 
-/* ---------------- caption ---------------- */
 .tv__caption {
   position: absolute;
   z-index: 2;
@@ -248,7 +256,6 @@
   font-variant-numeric: tabular-nums;
 }
 
-/* ---------------- badges ---------------- */
 .tv__live,
 .tv__count {
   position: absolute;
@@ -268,12 +275,8 @@
   -webkit-backdrop-filter: blur(10px);
   backdrop-filter: blur(10px);
 }
-.tv__live {
-  inset-inline-start: 16px;
-}
-.tv__live:empty {
-  display: none;
-}
+.tv__live { inset-inline-start: 16px; }
+.tv__live:empty { display: none; }
 .tv__live i {
   width: 9px;
   height: 9px;
@@ -287,11 +290,8 @@
   gap: 4px;
   font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
 }
-.tv__count span {
-  opacity: 0.45;
-}
+.tv__count span { opacity: 0.45; }
 
-/* ---------------- arrows ---------------- */
 .tv__arrow {
   position: absolute;
   z-index: 6;
@@ -324,7 +324,6 @@
   .tv__screen:focus-within .tv__arrow { opacity: 1; }
 }
 
-/* ---------------- progress bar ---------------- */
 .tv__bar {
   position: absolute;
   z-index: 6;
@@ -346,7 +345,6 @@
   animation-play-state: paused;
 }
 
-/* ---------------- "up next" playlist (white card, like the other cards of the site) ---------------- */
 .tv__side {
   position: relative;
 }
@@ -390,7 +388,10 @@
   scrollbar-color: rgba(27, 42, 92, 0.3) transparent;
 }
 .tv__list::-webkit-scrollbar { width: 6px; height: 6px; }
-.tv__list::-webkit-scrollbar-thumb { background: rgba(27, 42, 92, 0.3); border-radius: 6px; }
+.tv__list::-webkit-scrollbar-thumb {
+  background: rgba(27, 42, 92, 0.3);
+  border-radius: 6px;
+}
 
 .tv__item {
   position: relative;
@@ -483,23 +484,35 @@ html[dir='ltr'] .tv__item:hover {
 
 /* ---------------- responsive ---------------- */
 @media (max-width: 1000px) {
+  /* THE FIX: minmax(0, 1fr) prevents grid children from forcing parent expansion */
   .tv__stage {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .tv__side {
+    min-width: 0;
   }
   .tv__side-in {
     position: static;
+    width: 100%;
     padding: 14px 10px 10px;
   }
-  /* playlist becomes a horizontal strip under the screen */
   .tv__list {
     flex-direction: row;
     overflow-x: auto;
     overflow-y: hidden;
+    width: 100%;
+    min-width: 0;
     padding: 2px 2px 8px;
+    /* Hides scrollbar but keeps scrollability */
+    scrollbar-width: none; 
+  }
+  .tv__list::-webkit-scrollbar {
+    display: none;
   }
   .tv__item {
     grid-template-columns: 1fr;
     width: 190px;
+    flex-shrink: 0;
     gap: 8px;
   }
   .tv__item:hover,
@@ -516,10 +529,14 @@ html[dir='ltr'] .tv__item:hover {
   .tv__caption { inset-inline: 14px; inset-block-end: 20px; gap: 6px; }
   .tv__arrow { width: 38px; height: 38px; }
   .tv__live,
-  .tv__count { inset-block-start: 10px; padding: 5px 10px; font-size: 0.68rem; }
-  .tv__live { inset-inline-start: 10px; }
+  .tv__count {
+    inset-block-start: 10px;
+    padding: 5px 10px;
+    font-size: 0.68rem;
+  }
+  .tv__live  { inset-inline-start: 10px; }
   .tv__count { inset-inline-end: 10px; }
-  .tv__item { width: 160px; }
+  .tv__item  { width: 160px; }
 }
 
 @media (prefers-reduced-motion: reduce) {

@@ -53,7 +53,7 @@ export default function AdRail({ side }) {
     <aside className={`ad-rail ad-rail--${side}`} aria-label={ads.label}>
       {slots.map((slot) => (
         <div className="ad-slot" key={slot.id}>
-          <span className="ad-rail__tag">{ads.label}</span>
+
           <AdCard slot={slot} ads={ads} />
         </div>
       ))}

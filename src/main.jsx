@@ -13,6 +13,7 @@ import './styles/design.css';
 import './styles/footer.css';
 import './styles/gallery.css';
 import './styles/admission.css';
+import './styles/slider.css';
 import './styles/dashboard.css';
 
 ReactDOM.createRoot(document.getElementById('root')).render(

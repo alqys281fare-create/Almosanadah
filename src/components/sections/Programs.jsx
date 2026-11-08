@@ -5,15 +5,15 @@ import Reveal from '../common/Reveal.jsx';
 import SectionDivider from '../common/SectionDivider.jsx';
 import useCatalog from '../../hooks/useCatalog.js';
 import { PROGRAMS_PATH } from '../../data/Programscatalog';
+import ProgramTabs from './ProgramTabs.jsx';
 import '../../styles/Programscatlog.css';
 
-/* Home "Programs" section — Level 1 only: the three main groups.
-   Everything deeper (types → courses → details) lives on /programs. */
+/* Home «Programs» section: a tab per main program, the diplomas / courses of that tab in a slider,
+   and a details window (with the branches that offer it) behind every card. */
 export default function Programs() {
   const { content } = useContent();
   const programs = content?.programs;
-  const cat = useCatalog();
-  const { ui } = cat;
+  const { ui } = useCatalog();
 
   if (!programs) return null;
 
@@ -31,32 +31,10 @@ export default function Programs() {
         </Reveal>
 
         <Reveal direction="up" delay={120}>
-          <div className="pc-grid pc-grid--3">
-            {cat.groups.map((g) => {
-              const courseCount = g.types.reduce((n, t) => n + t.courses.length, 0);
-              return (
-                <Link key={g.id} to={`${PROGRAMS_PATH}/${g.id}`} className="pc-card pc-card--group">
-                  <span className="pc-card__icon">
-                    <Icon name={g.icon} size={34} stroke={1.6} />
-                  </span>
-                  <h3>{g.title}</h3>
-                  <p>{g.desc}</p>
-                  <div className="pc-card__stats">
-                    <span>
-                      <b>{g.types.length}</b> {ui.types}
-                    </span>
-                    <span>
-                      <b>{courseCount}</b> {ui.courses}
-                    </span>
-                  </div>
-                  <span className="pc-card__cta">
-                    {ui.explore} <Icon name="chevron" size={16} className="pc-card__arrow" />
-                  </span>
-                </Link>
-              );
-            })}
-          </div>
+          <ProgramTabs idPrefix="home-prog" />
         </Reveal>
+
+        
       </div>
     </section>
   );

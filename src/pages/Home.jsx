@@ -14,6 +14,7 @@ import Faq from '../components/sections/Faq.jsx';
 
 import { useLang } from '../i18n/LanguageContext.jsx';
 import Contact from '../components/sections/Contact.jsx';
+import BranchesCta from '../components/sections/Branchescta.jsx';
 
 export default function Home() {
   const { lang } = useLang();
@@ -29,6 +30,7 @@ export default function Home() {
           <About />
           <Stats />
           <Gallery />
+          <BranchesCta/>
           <Accreditation />
           <Testimonials />
           <Partners />

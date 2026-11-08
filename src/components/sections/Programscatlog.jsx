@@ -11,6 +11,11 @@ import { PROGRAMS_PATH } from '../../data/Programscatalog.js';
 import '../../styles/Programscatlog.css'
 import PageBanner from '../pages/PageBanner.jsx';
 import Icon from '../common/Icons.jsx';
+import ProgramTabs from './ProgramTabs.jsx';
+import BranchList from '../common/BranchList.jsx';
+import { useContent } from '../../context/ContentContext.jsx';
+import { getSliderLabels } from '../../data/sliderLabels.js';
+import { branchesFor, isAllBranches } from '../../Utils/branches.js';
 
 /* ───────────── small building blocks ───────────── */
 function Breadcrumbs({ items }) {
@@ -91,31 +96,7 @@ function GroupsView({ cat, base }) {
   return (
     <>
       <h2 className="pc-heading">{ui.title}</h2>
-      <div className="pc-grid pc-grid--3">
-        {cat.groups.map((g) => {
-          const courseCount = g.types.reduce((n, t) => n + t.courses.length, 0);
-          return (
-            <Link key={g.id} to={`${base}/${g.id}`} className="pc-card pc-card--group">
-              <span className="pc-card__icon">
-                <Icon name={g.icon} size={34} stroke={1.6} />
-              </span>
-              <h3>{g.title}</h3>
-              <p>{g.desc}</p>
-              <div className="pc-card__stats">
-                <span>
-                  <b>{g.types.length}</b> {ui.types}
-                </span>
-                <span>
-                  <b>{courseCount}</b> {ui.courses}
-                </span>
-              </div>
-              <span className="pc-card__cta">
-                {ui.explore} <Icon name="chevron" size={16} className="pc-card__arrow" />
-              </span>
-            </Link>
-          );
-        })}
-      </div>
+      <ProgramTabs base={base} idPrefix="page-prog" />
     </>
   );
 }
@@ -240,6 +221,11 @@ function CoursesView({ cat, group, type, base }) {
 /* ───────────── Level 4 : full details + study plan ───────────── */
 function CourseView({ cat, group, type, course, base }) {
   const { ui } = cat;
+  const { content, lang } = useContent();
+  const labels = getSliderLabels(lang, content.courses?.labels);
+  const allBranches = content.branches?.items || [];
+  // a course follows its diploma's branches unless it sets its own
+  const offer = course.branchMode ? course : type;
   const idx = type.courses.findIndex((x) => x.id === course.id);
   const prev = type.courses[idx - 1];
   const next = type.courses[idx + 1];
@@ -350,6 +336,16 @@ function CourseView({ cat, group, type, course, base }) {
             <Bullets items={course.prerequisites} />
           </Section>
         )}
+
+        <div className="pc-detail__branches">
+          <BranchList
+            branches={branchesFor(offer, allBranches)}
+            total={allBranches.length}
+            all={isAllBranches(offer)}
+            regions={content.branches?.regions || []}
+            labels={labels}
+          />
+        </div>
 
         <div className="pc-pager">
           {prev ? (

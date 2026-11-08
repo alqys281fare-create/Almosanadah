@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useContent } from '../../context/ContentContext.jsx';
 import { PROGRAMS_PATH } from '../../data/Programscatalog.js';
 import Icon from '../common/Icons.jsx';
-import { AddButton, AreaField, Grid, IconField, Panel, Row, TextField, moveItem, useDraft } from './Fields.jsx';
+import { AddButton, AreaField, BranchPicker, Grid, IconField, ImageField, Panel, Row, TextField, moveItem, useDraft } from './Fields.jsx';
 
 /*
  * Dashboard editor for the programs catalog the public /programs pages render:
@@ -267,6 +267,14 @@ export default function CatalogEditor({ notify }) {
         <TextField label="إجمالي الساعات" type="number" dir="ltr" min="0" value={type.hours ?? ''} onChange={(v) => patchType({ hours: v })} />
       </Grid>
       <IconField value={type.icon} onChange={(v) => patchType({ icon: v })} />
+      <ImageField label="صورة غلاف البطاقة (اختياري)" value={type.image || ''} onChange={(v) => patchType({ image: v })} maxW={800} />
+      <BranchPicker
+        label="الفروع التي يُقدَّم فيها هذا البرنامج"
+        value={type}
+        branches={allContents[lang].branches?.items || []}
+        regions={allContents[lang].branches?.regions || []}
+        onChange={(patch) => both((g) => mapType(g, sel.g, sel.t, (x) => ({ ...x, ...patch })))}
+      />
 
       <h3 className="sub-title">المقررات ({(type.courses || []).length})</h3>
       <div className="stack">

@@ -16,7 +16,6 @@ export default function Faq() {
 
   return (
     <section className="fq" id="faq" aria-labelledby="faq-title">
-      <SectionDivider from="var(--card)" variant="tilt" flip />
       <div className="container">
         <Reveal direction="up" className="section-head">
           <h2 className="section-title" id="faq-title">

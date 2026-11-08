@@ -191,3 +191,27 @@
   .pc-course__actions { width: 100%; flex-direction: row; flex-wrap: wrap; }
   .pc-head { flex-direction: column; }
 }
+/* =====================================================================
+   Enhanced look of the programs pages (cards, rows, details, summary)
+   ===================================================================== */
+.pc-heading { position: relative; padding-inline-start: 16px; }
+.pc-heading::before { content: ''; position: absolute; inset-block: 0.2em; inset-inline-start: 0; width: 5px; border-radius: 4px; background: linear-gradient(var(--red), var(--navy)); }
+.pc-toolbar { padding: 12px 16px; background: var(--card); border: 1px solid var(--line); border-radius: 999px; box-shadow: var(--shadow-sm); }
+.pc-card { border-radius: 22px; border: 1px solid var(--line); background: var(--card); }
+.pc-card::before { display: none; }
+.pc-card:hover { border-color: rgba(var(--red-rgb), 0.5); }
+.pc-card__icon, .pc-head__icon, .pc-course__icon { background: linear-gradient(135deg, rgba(var(--red-rgb), 0.14), rgba(var(--navy-rgb, 13, 62, 109), 0.1)); }
+.pc-card:hover .pc-card__icon { background: linear-gradient(135deg, var(--red), var(--red-dark)); box-shadow: var(--shadow-red); }
+.pc-course { border-radius: 20px; border: 1px solid var(--line); background: var(--card); }
+.pc-course:hover, .pc-course.is-open { border-color: rgba(var(--red-rgb), 0.5); transform: translateY(-2px); }
+.pc-course__num { display: grid; place-items: center; width: 34px; height: 34px; border-radius: 50%; background: var(--bg); color: var(--navy); }
+.pc-block { border-radius: 20px; border: 1px solid var(--line); background: var(--card); }
+.pc-block__title svg { padding: 6px; width: 32px; height: 32px; border-radius: 10px; background: rgba(var(--red-rgb), 0.1); }
+.pc-chips li { background: var(--bg); border: 1px solid var(--line); }
+.pc-summary { background: linear-gradient(150deg, var(--navy) 0%, var(--navy-dark) 70%, var(--red) 160%); border-radius: 22px; }
+.pc-step { border-radius: 14px; }
+.pc-pager__btn { border-radius: 16px; background: var(--card); }
+.pc-detail__branches { margin-top: 18px; }
+.pc-detail__branches .bl { background: var(--card); }
+.crumbs ol { background: transparent; }
+@media (max-width: 640px) { .pc-toolbar { border-radius: 20px; } }

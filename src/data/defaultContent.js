@@ -742,6 +742,44 @@ const en = {
 ar.catalog = { groups: getCatalogGroups('ar') };
 en.catalog = { groups: getCatalogGroups('en') };
 
+/*
+ * Courses page: every course card opens a details window. Give each shipped course sensible details
+ * (duration, hours, short description, highlights) by program type; the dashboard can edit all of them.
+ * branchMode 'all' = offered at every branch (pick specific branches per course in the dashboard).
+ */
+const COURSE_DEFAULTS = {
+  ar: {
+    acad: { duration: 'سنتان', hours: 960, tail: 'دبلوم أكاديمي يمنحك أساسًا علميًا متينًا ويؤهلك لمواصلة مسارك الأكاديمي والمهني.' },
+    pro: { duration: '6 أشهر', hours: 360, tail: 'دبلوم مهني تطبيقي يركّز على المهارات التي يطلبها سوق العمل.' },
+    courses: { duration: '4 أسابيع', hours: 40, tail: 'دورة قصيرة ومكثفة لاكتساب مهارة محددة في وقت قياسي.' },
+    highlights: ['محتوى تطبيقي يواكب سوق العمل', 'مدربون ذوو خبرة عملية', 'شهادة معتمدة بعد إتمام البرنامج'],
+    requirements: ['شهادة الثانوية العامة أو ما يعادلها'],
+  },
+  en: {
+    acad: { duration: '2 years', hours: 960, tail: 'An academic diploma that builds a strong foundation and prepares you for further study and work.' },
+    pro: { duration: '6 months', hours: 360, tail: 'An applied professional diploma focused on the skills the job market asks for.' },
+    courses: { duration: '4 weeks', hours: 40, tail: 'A short, intensive course to gain a specific skill quickly.' },
+    highlights: ['Practical content aligned with the job market', 'Instructors with hands-on experience', 'Accredited certificate on completion'],
+    requirements: ['High-school certificate or equivalent'],
+  },
+};
+[['ar', ar], ['en', en]].forEach(([l, c]) => {
+  const d = COURSE_DEFAULTS[l];
+  c.courses.items = c.courses.items.map((it) => {
+    const p = d[it.program] || d.courses;
+    return {
+      ...it,
+      desc: it.desc ?? `${it.title}. ${p.tail}`,
+      duration: it.duration ?? p.duration,
+      hours: it.hours ?? p.hours,
+      highlights: it.highlights ?? d.highlights,
+      requirements: it.requirements ?? d.requirements,
+      branchMode: it.branchMode ?? 'all',
+      branchIds: it.branchIds ?? [],
+    };
+  });
+});
+
 export const defaultContents = { ar, en };
 
 export const defaultCredentials = { username: 'admin', password: 'admin123' };

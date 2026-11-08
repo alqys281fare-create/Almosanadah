@@ -1,5 +1,8 @@
 
-const API_BASE_URL = 'https://site-content-api.mohamedmasterdegree.workers.dev';
+// const API_BASE_URL = 'https://site-content-api.mohamedmasterdegree.workers.dev';
+
+
+const API_BASE_URL = "http://localhost:5173";
 
 const AUTH_KEY = 'almosanadah:auth';
 

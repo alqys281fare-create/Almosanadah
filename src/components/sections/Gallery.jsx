@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useContent } from '../../context/ContentContext.jsx';
 import Icon from '../common/Icons.jsx';
@@ -14,7 +14,6 @@ export default function Gallery() {
   const g = content.gallery;
   const isRtl = dir === 'rtl';
 
-  /* null = nothing chosen yet -> the FIRST tab is selected by default */
   const [selected, setSelected] = useState(null);
   const [index, setIndex] = useState(0);
   const [paused, setPaused] = useState(false);
@@ -32,38 +31,74 @@ export default function Gallery() {
     [tab, g.items]
   );
 
-  /* first slide whenever the channel (tab) changes */
-  useEffect(() => {
-    setIndex(0);
-  }, [tab]);
+  const total = list.length;
+  const safeIndex = total === 0 ? 0 : Math.min(index, total - 1);
 
-  /* autoplay — restarts after every change so it matches the progress bar */
+  const selectTab = (id) => {
+    setSelected(id);
+    setIndex(0);
+  };
+
   useEffect(() => {
-    if (paused || list.length <= 1) return;
+    if (paused || total <= 1) return;
     const id = setTimeout(() => {
-      setIndex((i) => (i + 1) % list.length);
+      setIndex((i) => (i + 1) % total);
     }, AUTOPLAY_MS);
     return () => clearTimeout(id);
-  }, [paused, list.length, index, tab]);
+  }, [paused, total, safeIndex, tab]);
 
-  /* keep the active playlist item in view (only scrolls the playlist itself) */
-  useEffect(() => {
+  /* Custom scroll logic that handles both RTL and LTR flawlessly */
+  const scrollToItem = (el, behavior = 'smooth') => {
     const box = listRef.current;
-    const el = box?.children[index];
     if (!box || !el) return;
+
     const b = box.getBoundingClientRect();
     const e = el.getBoundingClientRect();
-    box.scrollBy({
-      left: e.left + e.width / 2 - (b.left + b.width / 2),
-      top: e.top + e.height / 2 - (b.top + b.height / 2),
-      behavior: 'smooth',
-    });
-  }, [index, tab]);
+    const cs = getComputedStyle(box);
+    const isRow = cs.flexDirection.startsWith('row');
+
+    if (isRow) {
+      // Horizontal scrolling (Mobile)
+      const delta = e.left + e.width / 2 - (b.left + b.width / 2);
+      if (Math.abs(delta) > 1) {
+        box.scrollBy({ left: delta, behavior });
+      }
+    } else {
+      // Vertical scrolling (Desktop)
+      const delta = e.top + e.height / 2 - (b.top + b.height / 2);
+      if (Math.abs(delta) > 1) {
+        box.scrollBy({ top: delta, behavior });
+      }
+    }
+  };
+
+  /* When tab changes, instantly snap to the first item to prevent janky animations */
+  useLayoutEffect(() => {
+    const box = listRef.current;
+    if (!box) return;
+    const el = box.children[0];
+    if (el) {
+      box.style.scrollBehavior = 'auto';
+      scrollToItem(el, 'auto');
+      box.style.scrollBehavior = '';
+    }
+  }, [tab]);
+
+  /* When active slide changes, smoothly center it */
+  useEffect(() => {
+    const box = listRef.current;
+    const el = box?.children[safeIndex];
+    if (!box || !el) return;
+    scrollToItem(el, 'smooth');
+  }, [safeIndex]);
 
   if (!g.items.length) return null;
 
-  const total = list.length;
-  const go = (i) => setIndex(((i % total) + total) % total);
+  const go = (i) => {
+    if (total === 0) return;
+    setIndex(((i % total) + total) % total);
+  };
+
   const pad = (n) => String(n).padStart(2, '0');
 
   const prevIcon = isRtl ? 'arrowRight' : 'arrowLeft';
@@ -71,17 +106,15 @@ export default function Gallery() {
   const upNext = g.upNext ?? (isRtl ? 'التالي' : 'Up next');
 
   const onKey = (e) => {
-    if (e.key === 'ArrowRight') go(index + (isRtl ? -1 : 1));
-    if (e.key === 'ArrowLeft') go(index + (isRtl ? 1 : -1));
+    if (e.key === 'ArrowRight') go(safeIndex + (isRtl ? -1 : 1));
+    if (e.key === 'ArrowLeft') go(safeIndex + (isRtl ? 1 : -1));
   };
 
   return (
     <section className="tv" id="gallery" aria-labelledby="gallery-title">
-      {/* soft animated edge, same as every other home section */}
       <SectionDivider from="var(--tone-stats-bottom)" variant="wave" flip />
 
       <div className="tv__wrap">
-        {/* same heading as the other sections (title + two growing lines) */}
         <Reveal direction="up" className="section-head tv__head">
           <h2 className="section-title tv__title" id="gallery-title">
             <span className="section-title__line" />
@@ -90,7 +123,6 @@ export default function Gallery() {
           </h2>
         </Reveal>
 
-        {/* channels = tabs */}
         <Reveal direction="up" className="tv__tabs" role="tablist">
           {g.tabs.map((t) => {
             const active = tab === t.id;
@@ -101,9 +133,9 @@ export default function Gallery() {
                 role="tab"
                 aria-selected={active}
                 className={`tv__tab ${active ? 'is-active' : ''}`}
-                onClick={() => setSelected(t.id)}
+                onClick={() => selectTab(t.id)}
               >
-                {active && <span className="tv__tab-dot" aria-hidden="true" />}
+                <span className="tv__tab-dot" aria-hidden="true" />
                 {t.icon && <Icon name={t.icon} size={18} />}
                 {t.label}
               </button>
@@ -119,7 +151,6 @@ export default function Gallery() {
           <p className="tv__empty">{g.empty}</p>
         ) : (
           <div className="tv__stage">
-            {/* ---------- the screen ---------- */}
             <div className="tv__frame">
               <div
                 className="tv__screen"
@@ -131,7 +162,7 @@ export default function Gallery() {
                 onBlur={() => setPaused(false)}
               >
                 {list.map((it, i) => {
-                  const active = i === index;
+                  const active = i === safeIndex;
                   const cat = labelOf[it.category];
                   return (
                     <article
@@ -162,7 +193,7 @@ export default function Gallery() {
                 })}
 
                 <div className="tv__count" aria-hidden="true">
-                  {pad(index + 1)}
+                  {pad(safeIndex + 1)}
                   <span>/</span>
                   {pad(total)}
                 </div>
@@ -172,7 +203,7 @@ export default function Gallery() {
                     <button
                       type="button"
                       className="tv__arrow tv__arrow--prev"
-                      onClick={() => go(index - 1)}
+                      onClick={() => go(safeIndex - 1)}
                       aria-label="Previous"
                     >
                       <Icon name={prevIcon} size={22} />
@@ -180,21 +211,20 @@ export default function Gallery() {
                     <button
                       type="button"
                       className="tv__arrow tv__arrow--next"
-                      onClick={() => go(index + 1)}
+                      onClick={() => go(safeIndex + 1)}
                       aria-label="Next"
                     >
                       <Icon name={nextIcon} size={22} />
                     </button>
 
                     <div className={`tv__bar ${paused ? 'is-paused' : ''}`}>
-                      <span key={`${tab}-${index}`} />
+                      <span key={`${tab}-${safeIndex}`} />
                     </div>
                   </>
                 )}
               </div>
             </div>
 
-            {/* ---------- up next playlist ---------- */}
             <aside className="tv__side" aria-label={upNext}>
               <div className="tv__side-in">
                 <h4 className="tv__side-title">
@@ -205,10 +235,10 @@ export default function Gallery() {
                     <button
                       key={it.id}
                       type="button"
-                      className={`tv__item ${i === index ? 'is-active' : ''}`}
+                      className={`tv__item ${i === safeIndex ? 'is-active' : ''}`}
                       onClick={() => setIndex(i)}
                       aria-label={it.title}
-                      aria-current={i === index}
+                      aria-current={i === safeIndex}
                     >
                       <span className="tv__thumb">
                         {it.image ? (
@@ -226,9 +256,9 @@ export default function Gallery() {
                           {it.date}
                         </small>
                       </span>
-                      {i === index && total > 1 && (
+                      {i === safeIndex && total > 1 && (
                         <span
-                          key={`${tab}-${index}`}
+                          key={`${tab}-${safeIndex}`}
                           className={`tv__item-bar ${paused ? 'is-paused' : ''}`}
                         />
                       )}

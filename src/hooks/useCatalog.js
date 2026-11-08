@@ -10,8 +10,9 @@ import { getCatalog } from '../data/Programscatalog.js';
 export default function useCatalog() {
   const { content, lang } = useContent();
   const groups = content?.catalog?.groups;
+  const uiOverride = content?.catalog?.ui;
   return useMemo(() => {
     const base = getCatalog(lang);
-    return { ...base, groups: Array.isArray(groups) ? groups : base.groups };
-  }, [lang, groups]);
+    return { ...base, ui: { ...base.ui, ...(uiOverride || {}) }, groups: Array.isArray(groups) ? groups : base.groups };
+  }, [lang, groups, uiOverride]);
 }

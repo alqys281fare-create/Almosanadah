@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext.jsx';
 import { ContentLangScope, useContent } from '../context/ContentContext.jsx';
 import { useLang } from '../i18n/LanguageContext.jsx';
 import Icon from '../components/common/Icons.jsx';
+import AdmissionEditor from '../components/dashboard/AdmissionEditor.jsx';
 import {
   AboutEditor,
   AccreditationEditor,
@@ -16,6 +17,8 @@ import {
   CoursesEditor,
   CourseFiltersEditor,
   ThemeEditor,
+  UiLabelsEditor,
+  ContactEditor,
   FeaturesEditor,
   FooterEditor,
   HeroEditor,
@@ -75,6 +78,9 @@ function Shell({ editLang, setEditLang }) {
     features: <FeaturesEditor notify={notify} />,
     programs: <ProgramsEditor notify={notify} />,
     filters: <CourseFiltersEditor notify={notify} go={choose} />,
+    labels: <UiLabelsEditor notify={notify} />,
+    admission: <AdmissionEditor notify={notify} />,
+    contact: <ContactEditor notify={notify} />,
     gallery: <GalleryEditor notify={notify} />,
     accreditation: <AccreditationEditor notify={notify} />,
     testimonials: <TestimonialsEditor notify={notify} />,

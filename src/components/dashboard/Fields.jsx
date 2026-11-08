@@ -338,3 +338,76 @@ export const AddButton = ({ onClick, children }) => (
 );
 
 export const nextId = (list) => list.reduce((m, x) => Math.max(m, Number(x.id) || 0), 0) + 1;
+
+/* a textarea where every line is one list item */
+export function LinesField({ label, value, onChange, rows = 4, hint }) {
+  return <AreaField label={label} hint={hint} value={(value || []).join('\n')} onChange={(v) => onChange(v.split('\n'))} rows={rows} />;
+}
+
+/*
+ * «Where is it offered?» — choose all branches, or tick specific ones (grouped by region).
+ *   value    { branchMode: 'all' | 'selected', branchIds: [] }
+ *   onChange (patch) → patch has the same two keys
+ */
+export function BranchPicker({ label = 'الفروع المتاحة', value, onChange, branches = [], regions = [] }) {
+  const mode = value?.branchMode === 'selected' ? 'selected' : 'all';
+  const ids = (value?.branchIds || []).map(String);
+  const has = (id) => ids.includes(String(id));
+  const setIds = (next) => onChange({ branchMode: 'selected', branchIds: next });
+  const toggle = (id) => setIds(has(id) ? ids.filter((x) => x !== String(id)) : [...ids, String(id)]);
+  const groups = regions
+    .map((r) => ({ ...r, list: branches.filter((b) => String(b.region) === String(r.id)) }))
+    .filter((g) => g.list.length);
+  const listed = new Set(groups.flatMap((g) => g.list.map((b) => String(b.id))));
+  const rest = branches.filter((b) => !listed.has(String(b.id)));
+  if (rest.length) groups.push({ id: '__rest', label: 'أخرى', list: rest });
+
+  return (
+    <div className="bp">
+      <span className="field__label">{label}</span>
+      <div className="bp__modes" role="radiogroup" aria-label={label}>
+        <button type="button" role="radio" aria-checked={mode === 'all'} className={`bp__mode ${mode === 'all' ? 'is-active' : ''}`} onClick={() => onChange({ branchMode: 'all', branchIds: ids })}>
+          جميع الفروع ({branches.length})
+        </button>
+        <button type="button" role="radio" aria-checked={mode === 'selected'} className={`bp__mode ${mode === 'selected' ? 'is-active' : ''}`} onClick={() => onChange({ branchMode: 'selected', branchIds: ids })}>
+          فروع محددة ({mode === 'selected' ? ids.filter((i) => branches.some((b) => String(b.id) === i)).length : ids.length})
+        </button>
+      </div>
+
+      {mode === 'selected' && (
+        <div className="bp__list">
+          <div className="bp__tools">
+            <button type="button" className="link-btn" onClick={() => setIds(branches.map((b) => String(b.id)))}>تحديد الكل</button>
+            <button type="button" className="link-btn" onClick={() => setIds([])}>إلغاء التحديد</button>
+          </div>
+          {branches.length === 0 && <p className="field__hint">لا توجد فروع بعد — أضفها من قسم «صفحة الفروع».</p>}
+          {groups.map((g) => {
+            const all = g.list.every((b) => has(b.id));
+            return (
+              <fieldset key={g.id} className="bp__group">
+                <legend>
+                  <label className="bp__check">
+                    <input
+                      type="checkbox"
+                      checked={all}
+                      onChange={() => setIds(all ? ids.filter((i) => !g.list.some((b) => String(b.id) === i)) : [...new Set([...ids, ...g.list.map((b) => String(b.id))])])}
+                    />
+                    <strong>{g.label}</strong>
+                  </label>
+                </legend>
+                <div className="bp__items">
+                  {g.list.map((b) => (
+                    <label key={b.id} className={`bp__check bp__item ${has(b.id) ? 'is-on' : ''}`}>
+                      <input type="checkbox" checked={has(b.id)} onChange={() => toggle(b.id)} />
+                      {b.name}
+                    </label>
+                  ))}
+                </div>
+              </fieldset>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+}

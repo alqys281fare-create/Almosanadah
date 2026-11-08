@@ -9,10 +9,12 @@ import Icon from '../common/Icons.jsx';
 import {
   AddButton,
   AreaField,
+  BranchPicker,
   ColorField,
   Grid,
   IconField,
   ImageField,
+  LinesField,
   Panel,
   Row,
   SelectField,
@@ -23,6 +25,9 @@ import {
   useDraft,
 } from './Fields.jsx';
 import CatalogEditor from './CatalogEditor.jsx';
+import { SLIDER_LABELS } from '../../data/sliderLabels.js';
+import { getCatalog } from '../../data/Programscatalog.js';
+import { syncAvailability } from '../../Utils/branches.js';
 import { AD_SLOT_DEFS, normalizeAds } from '../../Utils/ads.js';
 
 /* =============== Overview =============== */
@@ -1005,7 +1010,9 @@ export function ThemeEditor({ notify }) {
 
 /* =============== Courses page =============== */
 export function CoursesEditor({ notify, go }) {
-  const { content, updateSection } = useContent();
+  const { content, lang, allContents, updateSection, updateLang } = useContent();
+  const branchList = content.branches?.items || [];
+  const regionList = content.branches?.regions || [];
   const [c, setC, dirty, discard] = useDraft(content.courses);
   const [filter, setFilter] = useState('all'); // dashboard-only: narrow the long course list by program
   const set = (k) => (v) => setC((x) => ({ ...x, [k]: v }));
@@ -1038,6 +1045,13 @@ export function CoursesEditor({ notify, go }) {
           title: 'دورة جديدة',
           href: '',
           image: '',
+          desc: '',
+          duration: '',
+          hours: 0,
+          highlights: [],
+          requirements: [],
+          branchMode: 'all',
+          branchIds: [],
         },
       ],
     }));
@@ -1049,7 +1063,16 @@ export function CoursesEditor({ notify, go }) {
       dirty={dirty}
       onDiscard={discard}
       onSave={() => {
-        updateSection('courses', c);
+        const items = c.items.map((it) => ({
+          ...it,
+          hours: Number(it.hours) || 0,
+          highlights: (it.highlights || []).map((x) => String(x).trim()).filter(Boolean),
+          requirements: (it.requirements || []).map((x) => String(x).trim()).filter(Boolean),
+        }));
+        updateSection('courses', { ...c, items });
+        // the branches a course is offered at are the same in both languages → keep the other copy in sync
+        const other = lang === 'ar' ? 'en' : 'ar';
+        updateLang(other, 'courses', { items: syncAvailability(items, allContents[other].courses?.items || []) });
         notify('تم حفظ صفحة الدورات');
       }}
       extra={
@@ -1121,11 +1144,122 @@ export function CoursesEditor({ notify, go }) {
               <TextField label="رابط الدورة (اختياري)" dir="ltr" value={it.href} onChange={(v) => patchItem(i, 'href', v)} />
               <IconField label="الأيقونة" value={it.icon} onChange={(v) => patchItem(i, 'icon', v)} />
               <ImageField label="صورة بدل الأيقونة (اختياري)" value={it.image || ''} onChange={(v) => patchItem(i, 'image', v)} maxW={600} />
+              <AreaField label="وصف الدورة (يظهر في البطاقة وفي نافذة التفاصيل)" value={it.desc || ''} onChange={(v) => patchItem(i, 'desc', v)} rows={3} />
+              <Grid cols={2}>
+                <TextField label="المدة (مثال: 6 أشهر)" value={it.duration || ''} onChange={(v) => patchItem(i, 'duration', v)} />
+                <TextField label="عدد الساعات التدريبية" type="number" dir="ltr" min="0" value={it.hours ?? ''} onChange={(v) => patchItem(i, 'hours', v)} />
+              </Grid>
+              <Grid cols={2}>
+                <LinesField label="أبرز ما سيتعلمه الطالب (سطر لكل نقطة)" value={it.highlights} onChange={(v) => patchItem(i, 'highlights', v)} rows={4} />
+                <LinesField label="المتطلبات (سطر لكل نقطة)" value={it.requirements} onChange={(v) => patchItem(i, 'requirements', v)} rows={4} />
+              </Grid>
+              <BranchPicker
+                value={it}
+                branches={branchList}
+                regions={regionList}
+                onChange={(patch) => setC((x) => ({ ...x, items: x.items.map((t, j) => (j === i ? { ...t, ...patch } : t)) }))}
+              />
             </Row>
           ) : null
         )}
       </div>
       <AddButton onClick={addCourse}>إضافة دورة</AddButton>
+    </Panel>
+  );
+}
+
+/* =============== Slider / details / branches interface texts =============== */
+const LABEL_NAMES = {
+  tabsLabel: 'وصف شريط التبويبات (قارئ الشاشة)', sliderLabel: 'وصف المنزلق (قارئ الشاشة)', prev: 'زر السابق', next: 'زر التالي',
+  showDetails: 'زر «عرض التفاصيل»', details: 'عنوان نافذة التفاصيل', close: 'زر الإغلاق', items: 'كلمة «برنامج»', courses: 'كلمة «مقرر»',
+  emptyTab: 'رسالة التبويب الفارغ', duration: 'كلمة «المدة»', hours: 'كلمة «ساعة تدريبية»', category: 'كلمة «الفئة»', program: 'كلمة «نوع البرنامج»',
+  overview: 'عنوان «نبذة»', highlights: 'عنوان «أبرز ما ستتعلمه»', objectives: 'عنوان «الأهداف»', outcomes: 'عنوان «مخرجات التعلم»',
+  skills: 'عنوان «المهارات»', practical: 'عنوان «التدريب العملي»', requirements: 'عنوان «المتطلبات»', includedCourses: 'عنوان «المقررات المتضمنة»',
+  fullPlan: 'نص «الخطة الدراسية الكاملة»', branches: 'عنوان «الفروع المتاحة»', branchesHint: 'وصف فلتر المناطق', allBranches: 'نص «متاح في جميع الفروع»',
+  branchWord: 'كلمة «فرع»', noBranches: 'رسالة عدم تحديد فروع', allRegions: 'نص «كل المناطق»', call: 'نص «اتصال»', openMap: 'نص «الموقع على الخريطة»',
+  register: 'زر «سجّل الآن»', contact: 'نص «استفسر عن البرنامج»', openPage: 'زر «صفحة البرنامج»',
+};
+
+export function UiLabelsEditor({ notify }) {
+  const { content, lang, updateSection } = useContent();
+  const defaults = SLIDER_LABELS[lang === 'en' ? 'en' : 'ar'];
+  const catUi = getCatalog(lang).ui;
+  const [d, setD, dirty, discard] = useDraft({
+    labels: { ...defaults, ...(content.courses?.labels || {}) },
+    ui: { ...catUi, ...(content.catalog?.ui || {}) },
+  });
+  const setLabel = (k) => (v) => setD((x) => ({ ...x, labels: { ...x.labels, [k]: v } }));
+  const setUi = (k) => (v) => setD((x) => ({ ...x, ui: { ...x.ui, [k]: v } }));
+  const resetAll = () => {
+    if (window.confirm('استرجاع كل النصوص إلى الافتراضي؟')) setD({ labels: { ...defaults }, ui: { ...catUi } });
+  };
+
+  return (
+    <Panel
+      title="نصوص واجهة البرامج والتفاصيل"
+      hint="كل الكلمات الثابتة في التبويبات والمنزلق ونافذة التفاصيل وقائمة الفروع وصفحات البرامج. تُحفظ لكل لغة على حدة (غيّر «لغة المحتوى» لتعديل الإنجليزية)."
+      dirty={dirty}
+      onDiscard={discard}
+      onSave={() => {
+        updateSection('courses', { labels: d.labels });
+        updateSection('catalog', { ui: d.ui });
+        notify('تم حفظ نصوص الواجهة');
+      }}
+      extra={
+        <button type="button" className="btn btn--ghost btn--sm" onClick={resetAll}>
+          استرجاع الافتراضي
+        </button>
+      }
+    >
+      <h3 className="sub-title">التبويبات ونافذة التفاصيل والفروع</h3>
+      <Grid cols={2}>
+        {Object.keys(defaults).map((k) => (
+          <TextField key={k} label={LABEL_NAMES[k] || k} value={d.labels[k] ?? ''} onChange={setLabel(k)} />
+        ))}
+      </Grid>
+      <h3 className="sub-title">صفحات البرامج (/programs)</h3>
+      <Grid cols={2}>
+        {Object.entries(catUi)
+          .filter(([, v]) => typeof v === 'string')
+          .map(([k]) => (
+            <TextField key={k} label={k} value={d.ui[k] ?? ''} onChange={setUi(k)} />
+          ))}
+      </Grid>
+    </Panel>
+  );
+}
+
+/* =============== Contact section texts =============== */
+const CONTACT_FIELDS = [
+  ['title', 'عنوان القسم'], ['subtitle', 'العنوان الفرعي'], ['formTitle', 'عنوان النموذج'], ['formHint', 'نص توضيحي للنموذج'],
+  ['name', 'حقل الاسم'], ['email', 'حقل البريد'], ['subject', 'حقل الموضوع'], ['message', 'حقل الرسالة'], ['send', 'زر الإرسال'],
+  ['success', 'رسالة النجاح'], ['error', 'رسالة الخطأ'], ['phoneLabel', 'عنوان رقم التواصل'], ['emailLabel', 'عنوان البريد'],
+  ['regionsLabel', 'عنوان الفروع'], ['regionsValue', 'نص الفروع'],
+];
+export function ContactEditor({ notify }) {
+  const { content, updateSection } = useContent();
+  const [c, setC, dirty, discard] = useDraft(content.contact);
+  return (
+    <Panel
+      title="قسم تواصل معنا"
+      hint="نصوص قسم التواصل في الصفحة الرئيسية. روابط التواصل الاجتماعي تُعدَّل من قسم «التذييل»."
+      dirty={dirty}
+      onDiscard={discard}
+      onSave={() => {
+        updateSection('contact', c);
+        notify('تم حفظ قسم التواصل');
+      }}
+    >
+      <Grid cols={2}>
+        {CONTACT_FIELDS.map(([k, label]) =>
+          ['formHint', 'success', 'error', 'subtitle'].includes(k) ? null : (
+            <TextField key={k} label={label} value={c[k] ?? ''} onChange={(v) => setC((x) => ({ ...x, [k]: v }))} />
+          )
+        )}
+      </Grid>
+      {['subtitle', 'formHint', 'success', 'error'].map((k) => (
+        <AreaField key={k} label={CONTACT_FIELDS.find((f) => f[0] === k)[1]} value={c[k] ?? ''} onChange={(v) => setC((x) => ({ ...x, [k]: v }))} rows={2} />
+      ))}
     </Panel>
   );
 }
@@ -1573,6 +1707,9 @@ export const sections = [
   { key: 'ads', label: 'الإعلانات', icon: 'image' },
   { key: 'courses', label: 'صفحة الدورات', icon: 'cap' },
   { key: 'filters', label: 'تصنيفات صفحة الدورات', icon: 'layers' },
+  { key: 'labels', label: 'نصوص التبويبات والتفاصيل', icon: 'settings' },
+  { key: 'admission', label: 'قواعد القبول', icon: 'cert' },
+  { key: 'contact', label: 'قسم تواصل معنا', icon: 'mail' },
   { key: 'branches', label: 'صفحة الفروع', icon: 'pin' },
   { key: 'theme', label: 'ألوان الموقع', icon: 'palette' },
   { key: 'footer', label: 'التذييل', icon: 'building' },
