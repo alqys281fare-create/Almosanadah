@@ -1,3 +1,4 @@
+
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useContent } from '../../context/ContentContext.jsx';
@@ -6,6 +7,7 @@ import Icon from '../common/Icons.jsx';
 import Reveal from '../common/Reveal.jsx';
 import '../../styles/branchescta.css';
 
+const DEFAULT_IMAGE = 'image.png';
 
 const DEFAULTS = {
   ar: {
@@ -46,14 +48,18 @@ export default function BranchesCta() {
     <section className="bcta" id="branches-cta">
       <div className="container">
         <Reveal direction="up">
-          {/* ONE ROW: [ text ] [ picture ] — the picture is a normal grid cell, not absolutely positioned */}
           <div className="bcta__box">
-
             <div className="bcta__text">
-              <h2 >{cfg.title}</h2>
+              <h2>{cfg.title}</h2>
               <p className="bcta__desc">{cfg.text}</p>
+
               {isExternal ? (
-                <a className="bcta__btn" href={cfg.href} target="_blank" rel="noopener noreferrer">
+                <a
+                  className="bcta__btn"
+                  href={cfg.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
                   {button}
                 </a>
               ) : (
@@ -65,7 +71,13 @@ export default function BranchesCta() {
 
             <div className="bcta__media" aria-hidden="true">
               {showImage ? (
-                <img className="bcta__img" src="image.png" alt="" loading="lazy" onError={() => setImgFailed(true)} />
+                <img
+                  className="bcta__img"
+                  src={cfg.image}
+                  alt=""
+                  loading="lazy"
+                  onError={() => setImgFailed(true)}
+                />
               ) : (
                 <span className="bcta__ghost">
                   <Icon name="building" size={140} stroke={1.2} />
