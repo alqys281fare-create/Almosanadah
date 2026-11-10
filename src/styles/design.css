@@ -380,12 +380,7 @@ a.ad-card:hover {
   content: '';
   position: absolute;
   z-index: 0;
- site-main
-  aspect-ratio: 1;
-  border-radius: 50%;
-  pointer-events: none;
-  filter: blur(14px);
-  animation: orbDrift 20s ease-in-out infinite;
+ 
 }
 .programs::before,
 .gx::before,

@@ -773,7 +773,7 @@ grid-template-columns: auto minmax(0, 1fr) auto;
 }
 
 .features__grid::before {
-  top: 0;
+  top: -8px;
 }
 
 .features__grid::after {
