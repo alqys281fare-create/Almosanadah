@@ -1,16 +1,4 @@
-/*
- * Catalog helpers — keep «programs» (types) and «courses» consistent.
- *
- * Data model (per language):
- *   content.courses.programs  → the program TYPES  [{ id, label }]   ← single source of truth
- *   content.courses.items     → courses            [{ id, category, program, title, … }]
- *   content.programs.items    → featured programs  [{ id, program, title, … }]
- *   content.programs.tabs     → home-page tabs (rebuilt from the types + the «view all» tab)
- *
- * Content that was saved by an older version has courses WITHOUT a `program` (and featured programs
- * that stored the program id in `category`). Those courses never matched any program filter, so every
- * program tab showed 0 courses. normalizeCatalog() repairs that every time content is read.
- */
+
 
 export const idKey = (v) => String(v ?? '').trim().toLowerCase();
 export const sameId = (a, b) => idKey(a) === idKey(b);

@@ -145,8 +145,13 @@ p {
 }
 
 .container {
-  width: min(100% - 32px, var(--container));
-  margin-inline: auto;
+  width: min(100% - 32px, 1400px);
+  margin: auto;
+}
+
+.container2 {
+  width: min(100% - 32px, 1600px);
+  margin: auto;
 }
 .icon {
   flex-shrink: 0;

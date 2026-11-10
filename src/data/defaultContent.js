@@ -33,6 +33,12 @@ const ar = {
     { id: 'contact', label: 'تواصل معنا', href: '#contact' },
   ],
 
+  /* order / visibility of the home page sections (edited in the dashboard, shared by both languages) */
+  homeLayout: {
+    order: ['hero', 'features', 'programs', 'about', 'stats', 'gallery', 'branches', 'accreditation', 'testimonials', 'partners', 'faq', 'contact'],
+    hidden: [],
+  },
+
   hero: {
     title: 'معهد المسانِدة',
     highlight: 'بيئة تعليمية متميزة .. تصنع مستقبلك',
@@ -399,6 +405,12 @@ const en = {
     { id: 'faq', label: 'Our Branches', href: '/branches' },
     { id: 'contact', label: 'Contact Us', href: '#contact' },
   ],
+
+  /* order / visibility of the home page sections (edited in the dashboard, shared by both languages) */
+  homeLayout: {
+    order: ['hero', 'features', 'programs', 'about', 'stats', 'gallery', 'branches', 'accreditation', 'testimonials', 'partners', 'faq', 'contact'],
+    hidden: [],
+  },
 
   hero: {
     title: 'Al-Musanadah Institute',

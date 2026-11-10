@@ -6,24 +6,9 @@ import { useContent } from "../../context/ContentContext.jsx";
 import { useLang } from "../../i18n/LanguageContext.jsx";
 import Icon from "../common/Icons.jsx";
 
-/* Labels that get hidden on narrower desktop widths */
-const normalizeLabel = (value = "") =>
-  String(value)
-    .replace(/[\u064B-\u065F\u0670\u06D6-\u06ED]/g, "")
-    .replace(/[أإآٱ]/g, "ا")
-    .replace(/ى/g, "ي")
-    .replace(/ة/g, "ه")
-    .replace(/[\u200E\u200F]/g, "")
-    .replace(/\s+/g, " ")
-    .trim();
-
-const OPTIONAL_LABELS = new Set(
-  ["النظام الادارى", "أصدقاء المساندة"].map(normalizeLabel)
-);
-
-const OPTIONAL_IDS = new Set(["trainers", "system"]);
-
-/* Header fit levels */
+/* Header fit levels.
+   0 = full header, 1 / 2 = progressively tighter spacing (every link stays visible),
+   3 (MAX_FIT) = burger + drawer. Nothing is ever hidden: if the links cannot fit, the burger menu takes over. */
 const MAX_FIT = 3;
 const GAP = 14;
 
@@ -54,7 +39,6 @@ export default function Header() {
   const [open, setOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [active, setActive] = useState("home");
-  const [drawerTop, setDrawerTop] = useState(0);
 
   const headerRef = useRef(null);
   const innerRef = useRef(null);
@@ -63,7 +47,12 @@ export default function Header() {
   const [fit, setFit] = useState(0);
   const [measureKey, setMeasureKey] = useState(0);
 
-  const { pathname } = useLocation();
+  const { pathname, hash } = useLocation();
+
+  /* Always leave the drawer when the user navigates */
+  useEffect(() => {
+    setOpen(false);
+  }, [pathname, hash]);
 
   /* Topbar actions */
   const topbar = useMemo(() => {
@@ -147,32 +136,6 @@ export default function Header() {
     };
   }, [open]);
 
-  /* Align drawer below header */
-  useEffect(() => {
-    if (!open) return;
-
-    const update = () => {
-      if (headerRef.current) {
-        setDrawerTop(
-          Math.max(
-            0,
-            Math.round(headerRef.current.getBoundingClientRect().bottom)
-          )
-        );
-      }
-    };
-
-    update();
-
-    window.addEventListener("resize", update);
-    window.addEventListener("orientationchange", update);
-
-    return () => {
-      window.removeEventListener("resize", update);
-      window.removeEventListener("orientationchange", update);
-    };
-  }, [open]);
-
   const isRoute = pathname !== "/";
 
   const go = (item) => {
@@ -181,16 +144,7 @@ export default function Header() {
   };
 
   /* Navigation items */
-  const navItems = useMemo(
-    () =>
-      nav.map((item) => ({
-        ...item,
-        optional:
-          OPTIONAL_IDS.has(item.id) ||
-          OPTIONAL_LABELS.has(normalizeLabel(item.label)),
-      })),
-    [nav]
-  );
+  const navItems = nav;
 
   /* Header responsive measurement */
   const sig = [
@@ -271,7 +225,11 @@ export default function Header() {
       ),
     ].some((el) => el.scrollWidth > el.clientWidth + 1);
 
+    /* the nav box itself is clamped to its grid column, so also compare the REAL width of its links */
+    const navClipped = navEl.scrollWidth > navEl.clientWidth + 1;
+
     const fits =
+      !navClipped &&
       !overlaps(n, b) &&
       !overlaps(n, e) &&
       !overlaps(b, e) &&
@@ -280,7 +238,7 @@ export default function Header() {
       e.right <= i.right + 1;
 
     if (!fits && fit < MAX_FIT) {
-      setFit(fit === 1 ? MAX_FIT : fit + 1);
+      setFit(fit + 1);
     }
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -370,7 +328,6 @@ export default function Header() {
           compact ? "header--compact" : ""
         }`}
         data-fit={fit}
-        style={{ "--drawer-top": `${drawerTop}px` }}
       >
         <div
           className="container header__inner"
@@ -409,11 +366,18 @@ export default function Header() {
                 <strong>{site.name}</strong>
                 <small>{site.subtitle}</small>
               </div>
+
+              <button
+                type="button"
+                className="nav__close"
+                aria-label={t("closeMenu")}
+                onClick={() => setOpen(false)}
+              >
+                <Icon name="close" size={22} />
+              </button>
             </div>
 
-            {navItems.map((item, index) => {
-              const isExtra = index >= 3;
-
+            {navItems.map((item) => {
               const isActive = isRoute
                 ? item.href === pathname
                 : active === item.id;
@@ -422,14 +386,7 @@ export default function Header() {
                 <SmartLink
                   key={item.id}
                   href={item.href}
-                  className={[
-                    "nav__link",
-                    isActive ? "is-active" : "",
-                    item.optional ? "nav__link--optional" : "",
-                    isExtra ? "nav__link--extra" : "",
-                  ]
-                    .filter(Boolean)
-                    .join(" ")}
+                  className={`nav__link${isActive ? " is-active" : ""}`}
                   onClick={() => go(item)}
                   aria-current={isActive ? "page" : undefined}
                 >

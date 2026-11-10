@@ -15,7 +15,7 @@ const DEFAULT_ACTIONS = [
   },
   {
     id: "register",
-    label: "سجل الان",
+    label: "حساب جديد",
     href: "#register",
     variant: "primary",
   },

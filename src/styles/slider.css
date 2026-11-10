@@ -1,11 +1,14 @@
-/* =====================================================================
-   Tabs + horizontal slider + details window + branches
-   Used by the home «Programs» section, /programs and /courses.
-   Everything is built from the theme variables (--red, --navy, --card …)
-   and logical properties, so RTL / LTR and the dashboard colours just work.
-   ===================================================================== */
+/* =========================================================
+   TAB SLIDER – FULL CARDS ONLY (3 / 2 / 1 per view)
+   ========================================================= */
+.ts {
+  --per: 3;                 /* cards visible at once on large screens */
+  --gap: 24px;
+  position: relative;
+  max-width: 100%;
+  min-width: 0;
+}
 
-/* ---------- lead text under the section title ---------- */
 .ts-lead {
   max-width: 720px;
   margin: 0 auto 22px;
@@ -15,101 +18,61 @@
   font-size: 0.98rem;
   animation: tsFade 0.45s var(--ease) both;
 }
+
 .programs__more { display: flex; justify-content: center; margin-top: 34px; }
 
-/* ---------- tabs (desktop: one pill row) ---------- */
-.ts { position: relative; max-width: 100%; min-width: 0; }
-
-.ts-tabs {
-  display: flex;
-  justify-content: center;
-  width: 100%;
-  min-width: 0;
-  margin-bottom: 30px;
-  max-width: 100%;
-}
-
+/* ---------- tabs ---------- */
+.ts-tabs { display: flex; justify-content: center; width: 100%; min-width: 0; margin-bottom: 30px; max-width: 100%; }
 .ts-tabs__inner {
-  display: flex;
-  gap: 4px;
-  max-width: 100%;
-  min-width: 0;
-  box-sizing: border-box;
-  padding: 6px;
-  background: var(--card);
-  border: 1px solid var(--line);
-  border-radius: 999px;
-  box-shadow: var(--shadow-sm);
-  overflow-x: auto;
-  overflow-y: hidden;
-  overscroll-behavior-x: contain;
-  scrollbar-width: none;
-  -webkit-overflow-scrolling: touch;
+  display: flex; gap: 6px; justify-content: center; width: auto; max-width: 100%;
+  box-sizing: border-box; padding: 6px; border-radius: 999px;
+
+  overflow-x: auto; overflow-y: hidden; overscroll-behavior-x: contain;
+  scrollbar-width: none; -webkit-overflow-scrolling: touch;
 }
 .ts-tabs__inner::-webkit-scrollbar { display: none; }
 
 .ts-tab {
-  position: relative;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 8px;
-  flex: 0 0 auto;
-  padding: 11px 22px;
-  border-radius: 999px;
-  color: var(--navy);
-  font-weight: 800;
-  font-size: 0.95rem;
-  white-space: nowrap;
+  position: relative; display: inline-flex; align-items: center; justify-content: center;
+  gap: 8px; flex: 0 0 auto; padding: 10px 20px; border-radius: 999px;
+  color: var(--navy); background-color: #fff; font-weight: 800; font-size: 0.95rem;
+  white-space: nowrap; border: 1px solid rgba(209, 208, 208, 0.48);
   transition: color 0.3s, background 0.35s var(--ease), box-shadow 0.35s var(--ease);
 }
-.ts-tab:hover { color: var(--red); }
+.ts-tab:hover { background-color: var(--red); }
+.ts-tab:hover .ts-tab__label,
+.ts-tab:hover .ts-tab__count { color: #fff; }
+.ts-tab:hover .ts-tab__count { background: rgba(255, 255, 255, 0.25); }
 .ts-tab.is-active,
-.ts-tab.is-active:hover {
-  color: #fff;
-  background: linear-gradient(135deg, var(--red), var(--red-dark));
-  box-shadow: var(--shadow-red);
-}
+.ts-tab.is-active:hover { color: #fff; background: linear-gradient(135deg, var(--red), var(--red-dark)); }
 .ts-tab__count {
-  display: inline-grid;
-  place-items: center;
-  min-width: 24px;
-  height: 22px;
-  padding-inline: 7px;
-  border-radius: 999px;
-  background: rgba(var(--red-rgb), 0.1);
-  color: var(--red);
-  font-size: 0.75rem;
-  font-weight: 800;
-  transition: background 0.3s, color 0.3s;
+  display: inline-grid; place-items: center; min-width: 24px; height: 22px;
+  padding-inline: 7px; border-radius: 999px; background: rgba(var(--red-rgb), 0.1);
+  color: var(--red); font-size: 0.75rem; font-weight: 800; transition: background 0.3s, color 0.3s;
 }
 .ts-tab.is-active .ts-tab__count { background: rgba(255, 255, 255, 0.25); color: #fff; }
 
-/* ---------- panel (re-mounted on every tab change → smooth transition) ---------- */
+/* ---------- panel ---------- */
 .ts-panel { animation: tsPanel 0.5s var(--ease) both; }
 @keyframes tsPanel { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
-@keyframes tsFade { from { opacity: 0; } to { opacity: 1; } }
+@keyframes tsFade  { from { opacity: 0; } to { opacity: 1; } }
 
 .ts-empty {
-  padding: 56px 16px;
-  text-align: center;
-  color: var(--muted);
-  background: var(--card);
-  border: 1.5px dashed var(--line);
-  border-radius: var(--radius);
+  padding: 56px 16px; text-align: center; color: var(--muted);
+  background: var(--card); border: 1.5px dashed var(--line); border-radius: var(--radius);
 }
 
-/* ---------- slider ---------- */
+/* ---------- slider track ---------- */
 .ts-stage { position: relative; min-width: 0; }
+
 .ts-track {
-  --gap: 22px;
-  --per: 3;
   display: flex;
+  align-items: stretch;               /* equal-height cards */
   gap: var(--gap);
-  padding: 10px 4px 26px;
+  padding: 14px 0 34px;               /* vertical only: no side padding, so nothing peeks in */
   overflow-x: auto;
   scroll-snap-type: x mandatory;
-  scroll-padding-inline: 4px;
+  scroll-padding: 0;
   overscroll-behavior-x: contain;
   scrollbar-width: none;
   cursor: grab;
@@ -120,28 +83,28 @@
 .ts-track.is-dragging { cursor: grabbing; scroll-snap-type: none; scroll-behavior: auto; user-select: none; }
 .ts-track.is-dragging * { pointer-events: none; }
 
+/* Exact width: (100% - all gaps) / cards per view  => always whole cards */
 .ts-slide {
-  flex: 0 0 calc((100% - var(--gap) * (var(--per) - 1)) / var(--per));
+  flex: 0 0 calc((100% - (var(--gap) * (var(--per) - 1))) / var(--per));
+  width: calc((100% - (var(--gap) * (var(--per) - 1))) / var(--per));
   min-width: 0;
-  scroll-snap-align: start;
   display: flex;
+  scroll-snap-align: start;
+  scroll-snap-stop: always;
   animation: tsRise 0.55s var(--ease) both;
   animation-delay: calc(var(--i, 0) * 70ms);
 }
+/* Safe centering when there are fewer cards than --per (collapses to 0 when overflowing) */
+.ts-slide:first-child { margin-inline-start: auto; }
+.ts-slide:last-child  { margin-inline-end: auto; }
+
 @keyframes tsRise { from { opacity: 0; transform: translateY(22px) scale(0.98); } to { opacity: 1; transform: none; } }
 
+/* ---------- slider buttons ---------- */
 .ts-btn {
-  position: absolute;
-  top: calc(50% - 20px);
-  z-index: 3;
-  display: grid;
-  place-items: center;
-  width: 46px;
-  height: 46px;
-  border-radius: 50%;
-  background: var(--card);
-  color: var(--navy);
-  border: 1px solid var(--line);
+  position: absolute; top: calc(50% - 20px); z-index: 3;
+  display: grid; place-items: center; width: 46px; height: 46px; border-radius: 50%;
+  background: var(--card); color: var(--navy); border: 1px solid var(--line);
   box-shadow: var(--shadow-md);
   transition: transform 0.25s var(--ease), background 0.25s, color 0.25s, opacity 0.25s;
 }
@@ -159,99 +122,123 @@
 [dir='rtl'] .ts-btn--next svg { transform: scaleX(-1); }
 
 .ts-progress {
-  height: 4px;
-  max-width: 260px;
-  margin: 2px auto 0;
-  border-radius: 99px;
-  background: rgba(var(--red-rgb), 0.12);
-  overflow: hidden;
+  height: 4px; max-width: 260px; margin: 2px auto 0; border-radius: 99px;
+  background: rgba(var(--red-rgb), 0.12); overflow: hidden;
 }
 .ts-progress span { display: block; height: 100%; min-width: 14%; border-radius: 99px; background: var(--red); transition: margin 0.12s linear, width 0.2s; }
 
-/* ---------- card ---------- */
+/* =========================================================
+   CARD
+   ========================================================= */
 .oc {
   position: relative;
   display: flex;
   flex-direction: column;
   width: 100%;
-  background: var(--card);
-  border: 1px solid var(--line);
-  border-radius: 22px;
-  box-shadow: var(--shadow-sm);
+  min-width: 0;
+  background: #fff;
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  border-radius: 20px;
   overflow: hidden;
-  transition: transform 0.35s var(--ease), box-shadow 0.35s var(--ease), border-color 0.35s;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.06);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
-.oc:hover { transform: translateY(-6px); box-shadow: var(--shadow-md); border-color: rgba(var(--red-rgb), 0.45); }
+.oc:hover { transform: translateY(-4px); box-shadow: 0 10px 24px rgba(0, 0, 0, 0.1); }
+
+/* header / image */
 .oc__media {
   position: relative;
+  flex: 0 0 auto;
   display: grid;
   place-items: center;
-  height: 150px;
-  background:
-    radial-gradient(circle at 18% 20%, rgba(255, 255, 255, 0.22) 0 14%, transparent 15%),
-    radial-gradient(circle at 88% 90%, rgba(255, 255, 255, 0.16) 0 22%, transparent 23%),
-    linear-gradient(135deg, var(--navy) 0%, var(--navy-dark) 55%, var(--red) 130%);
+  height: 250px;
   overflow: hidden;
+  background:
+    radial-gradient(circle at 20% 20%, rgba(255, 255, 255, 0.15) 0 15%, transparent 16%),
+    radial-gradient(circle at 85% 90%, rgba(255, 255, 255, 0.1) 0 20%, transparent 21%),
+    linear-gradient(135deg, #1a2a5c 0%, #101b3b 50%, #792136 100%);
 }
-.oc__media.has-img { background: var(--navy-dark); }
-.oc__media img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; transition: transform 0.6s var(--ease); -webkit-user-drag: none; }
-.oc:hover .oc__media img { transform: scale(1.06); }
+.oc__media.has-img { background: #101b3b; }
+.oc__media img {
+  position: absolute; inset: 0; width: 100%; height: 100%;
+  object-fit: cover; transition: transform 0.6s var(--ease); -webkit-user-drag: none;
+}
+.oc:hover .oc__media img { transform: scale(1.05); }
 .oc__icon {
-  display: grid;
-  place-items: center;
-  width: 78px;
-  height: 78px;
-  border-radius: 24px;
-  color: #fff;
-  background: rgba(255, 255, 255, 0.16);
-  border: 1px solid rgba(255, 255, 255, 0.3);
-  backdrop-filter: blur(6px);
-  transition: transform 0.4s var(--ease);
+  display: grid; place-items: center; width: 64px; height: 64px; border-radius: 16px;
+  color: #fff; background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2); backdrop-filter: blur(8px);
 }
-.oc:hover .oc__icon { transform: scale(1.1) rotate(-4deg); }
 .oc__badge,
 .oc__tag {
-  position: absolute;
-  top: 14px;
-  padding: 4px 12px;
-  border-radius: 999px;
-  font-size: 0.74rem;
-  font-weight: 800;
-  line-height: 1.5;
+  position: absolute; top: 14px; z-index: 1; padding: 4px 12px;
+  border-radius: 999px; font-size: 0.75rem; font-weight: 800;
 }
-.oc__badge { inset-inline-start: 14px; background: #fff; color: var(--red); box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15); }
-.oc__tag { inset-inline-end: 14px; background: rgba(255, 255, 255, 0.2); color: #fff; border: 1px solid rgba(255, 255, 255, 0.35); backdrop-filter: blur(6px); max-width: 55%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.oc__body { display: flex; flex-direction: column; gap: 10px; flex: 1; padding: 20px 20px 8px; }
-.oc__title { font-size: 1.12rem; font-weight: 800; line-height: 1.5; color: var(--navy-dark); }
+.oc__badge { inset-inline-start: 14px; background: #fff; color: var(--red); }
+.oc__tag   { inset-inline-end: 14px; background: rgba(255, 255, 255, 0.2); color: #fff; border: 1px solid rgba(255, 255, 255, 0.3); backdrop-filter: blur(4px); }
+
+/* body */
+.oc__body {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+  padding: 20px 20px 8px;
+  text-align: start;
+}
+.oc__title {
+  margin: 0 0 10px;
+  font-size: 1.12rem;
+  font-weight: 800;
+  line-height: 1.4;
+  color: #1a2a5c;
+}
 .oc__desc {
-  color: var(--muted);
+  margin: 0 0 14px;
+  color: #555;
   font-size: 0.9rem;
-  line-height: 1.8;
+  line-height: 1.7;
   display: -webkit-box;
-  -webkit-line-clamp: 3;
+  -webkit-line-clamp: 4;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
-.oc__where { display: inline-flex; align-items: center; gap: 6px; margin-top: auto; padding-top: 4px; font-size: 0.82rem; font-weight: 700; color: var(--navy); }
-.oc__where svg { color: var(--red); flex-shrink: 0; }
-.oc__btn { margin: 14px 20px 20px; justify-content: center; }
 
-/* ---------- small pieces shared by card and details ---------- */
-.dp-meta { display: flex; flex-wrap: wrap; gap: 8px; }
-.dp-meta li {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 5px 12px;
-  border-radius: 999px;
-  background: rgba(var(--red-rgb), 0.08);
-  color: var(--navy);
-  font-size: 0.78rem;
-  font-weight: 700;
+.oc__objectives { display: grid; gap: 8px; margin: 0 0 16px; padding: 0; list-style: none; }
+.oc__objectives li {
+  position: relative; padding-inline-start: 18px;
+  font-size: 0.86rem; line-height: 1.6; color: #333;
 }
-.dp-meta svg { color: var(--red); }
+.oc__objectives li::before {
+  content: ''; position: absolute; inset-inline-start: 0; top: 0.6em;
+  width: 6px; height: 6px; border-radius: 50%; background: var(--red);
+}
 
-/* ---------- details window ---------- */
+.dp-meta {
+  display: flex; flex-wrap: wrap; gap: 8px;
+  margin: auto 0 0; padding: 0 0 16px; list-style: none;
+}
+.dp-meta li {
+  display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px;
+  border-radius: 999px; background: #f4f5f8; color: #1a2a5c;
+  font-size: 0.78rem; font-weight: 700;
+}
+.dp-meta svg { color: var(--red); flex-shrink: 0; }
+
+.oc__btn {
+  flex: 0 0 auto;
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  margin: 0 20px 20px;
+  padding: 12px 24px;
+  background: #9c1b30; color: #fff; border: 0; border-radius: 999px;
+  font-weight: 700; font-size: 0.95rem; cursor: pointer;
+  transition: background 0.3s ease;
+}
+.oc__btn:hover { background: #7a1425; }
+
+/* =========================================================
+   DETAILS MODAL
+   ========================================================= */
 .dm { position: fixed; inset: 0; z-index: 9000; display: grid; place-items: center; padding: 20px; }
 .dm__backdrop { position: absolute; inset: 0; background: rgba(13, 24, 52, 0.62); backdrop-filter: blur(6px); animation: tsFade 0.3s both; }
 .dm__panel {
@@ -314,6 +301,7 @@
 .od__head { display: grid; gap: 10px; min-width: 0; }
 .od__tag { justify-self: start; padding: 3px 12px; border-radius: 999px; background: var(--red); font-size: 0.76rem; font-weight: 800; }
 .od__title { font-size: clamp(1.3rem, 3.2vw, 1.8rem); font-weight: 800; line-height: 1.4; }
+.od__hero .dp-meta { margin: 0; padding: 0; }
 .od__hero .dp-meta li { background: rgba(255, 255, 255, 0.16); color: #fff; border: 1px solid rgba(255, 255, 255, 0.22); }
 .od__hero .dp-meta svg { color: #fff; }
 .od__body { display: grid; gap: 22px; padding: 28px 32px; }
@@ -347,7 +335,9 @@
 .dp-courses a:hover { color: var(--red); }
 .dp-courses small { display: block; margin-top: 2px; color: var(--muted); font-weight: 600; }
 
-/* ---------- branches ---------- */
+/* =========================================================
+   BRANCHES
+   ========================================================= */
 .bl { padding: 22px; background: var(--bg); border: 1px solid var(--line); border-radius: 20px; }
 .bl__head { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 14px; }
 .bl__title { display: flex; align-items: center; gap: 10px; font-size: 1.05rem; font-weight: 800; color: var(--navy-dark); }
@@ -383,25 +373,17 @@
 .bl__actions a { display: inline-flex; align-items: center; gap: 5px; font-size: 0.8rem; font-weight: 800; color: var(--red); }
 .bl__actions a:hover { text-decoration: underline; }
 
-/* ---------- courses page: category chips ---------- */
 .cat-chips { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 8px; margin: 22px 0 26px; }
 .cat-chips__title { margin-inline-end: 6px; font-weight: 800; color: var(--muted); font-size: 0.85rem; }
 
-/* =====================================================================
-   RESPONSIVE — TABS WRAP INTO A GRID
-   Desktop : one pill row (default)
-   ≤1100px : 2 tabs per row, each a rounded card
-   ≤700px  : 1 tab per row
-   ===================================================================== */
-
-/* ---------- Medium: 2 tabs per row ---------- */
+/* =========================================================
+   RESPONSIVE
+   Large screens: 3 cards | Tablet (<=1100px): 2 cards | Mobile (<=700px): 1 card
+   ========================================================= */
 @media (max-width: 1100px) {
-  .ts-tabs {
-    display: block;
-    width: 100%;
-  }
+  .ts { --per: 2; }                       /* two full cards on tablets */
 
-  /* Drop the outer pill — every tab becomes its own rounded card */
+  .ts-tabs { display: block; width: 100%; }
   .ts-tabs__inner {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -414,7 +396,6 @@
     box-shadow: none;
     overflow: visible;
   }
-
   .ts-tab {
     width: 100%;
     justify-content: center;
@@ -427,48 +408,34 @@
     white-space: normal;
     text-align: center;
   }
-
-  .ts-tab:hover {
-    color: var(--red);
-    border-color: rgba(var(--red-rgb), 0.55);
-  }
-
-  .ts-tab.is-active,
-  .ts-tab.is-active:hover {
+  .ts-tab:hover { color: var(--red); border-color: rgba(var(--red-rgb), 0.55); }
+  .ts-tab.is-active, .ts-tab.is-active:hover {
     color: #fff;
     border-color: transparent;
     background: linear-gradient(135deg, var(--red), var(--red-dark));
     box-shadow: var(--shadow-red);
   }
 
-  .ts-track { --per: 2; }
+  .oc__body { padding: 22px 24px 8px; }
+  .oc__btn { margin: 0 24px 24px; }
 }
 
-/* ---------- Small: 1 tab per row ---------- */
 @media (max-width: 700px) {
+  .ts { --per: 1; --gap: 16px; }          /* one full card per screen */
+
   .ts-tabs { margin-bottom: 20px; }
+  .ts-tabs__inner { grid-template-columns: 1fr; gap: 6px; }
+  .ts-tab { padding: 11px 14px; font-size: 0.88rem; gap: 6px; border-radius: 12px; }
+  .ts-tab__count { min-width: 22px; height: 20px; font-size: 0.7rem; padding-inline: 6px; }
 
-  .ts-tabs__inner {
-    grid-template-columns: 1fr;
-    gap: 6px;
-  }
-
-  .ts-tab {
-    padding: 11px 14px;
-    font-size: 0.88rem;
-    gap: 6px;
-    border-radius: 12px;
-  }
-
-  .ts-tab__count {
-    min-width: 22px;
-    height: 20px;
-    font-size: 0.7rem;
-    padding-inline: 6px;
-  }
-
-  .ts-track { --per: 1; --gap: 14px; }
   .ts-btn { display: none; }
+  .ts-lead { font-size: 0.9rem; margin-bottom: 16px; }
+  .ts-track { padding-bottom: 22px; }
+
+  .oc { border-radius: 16px; }
+  .oc__media { height: 140px; }
+  .oc__body { padding: 18px 16px 6px; }
+  .oc__btn { margin: 0 16px 16px; }
 
   .dm { padding: 0; align-items: end; }
   .dm__panel { width: 100%; max-height: 94dvh; border-radius: 26px 26px 0 0; animation-name: dmSheet; }
@@ -479,14 +446,6 @@
   .od__foot .btn { flex: 1; justify-content: center; }
   .dp-cols { grid-template-columns: 1fr; }
 
-  .ts-lead { font-size: 0.9rem; margin-bottom: 16px; }
-  .ts-track { padding-bottom: 18px; }
-  .oc { border-radius: 18px; }
-  .oc__media { height: 120px; }
-  .oc__icon { width: 62px; height: 62px; border-radius: 20px; }
-  .oc__body { padding: 16px 16px 6px; }
-  .oc__btn { margin: 12px 16px 16px; }
-  .ts-progress { max-width: 160px; }
   .bl { padding: 16px; }
   .bl__grid { grid-template-columns: 1fr; max-height: 300px; }
   .bl__chips { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; margin-inline: -4px; padding: 2px 4px; }
@@ -494,7 +453,6 @@
   .bl__chip { flex-shrink: 0; }
   .dp-courses li { padding: 10px 12px; }
 
-  /* courses page: category chips scroll on phones */
   .cat-chips { flex-wrap: nowrap; justify-content: flex-start; overflow-x: auto; margin-inline: -16px; padding: 4px 16px; scrollbar-width: none; }
   .cat-chips::-webkit-scrollbar { display: none; }
   .cat-chips > * { flex-shrink: 0; }
@@ -507,15 +465,4 @@
   .ts-tab, .oc, .oc__media img, .oc__icon { transition: none; }
 }
 
-/* very small phones */
-@media (max-width: 380px) {
-  .ts-tab { padding: 10px 12px; font-size: 0.82rem; }
-  .od__title { font-size: 1.2rem; }
-}
-
-/* prevent any accidental horizontal scroll of the page */
 html, body { overflow-x: clip; }
-@media (max-width: 400px) {
-  .header__action--ghost { font-size: 0; gap: 0; padding: 9px 11px; }
-  .header__action--ghost svg { width: 16px; height: 16px; }
-}

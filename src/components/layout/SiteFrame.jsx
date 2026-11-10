@@ -18,15 +18,13 @@ export default function SiteFrame({ children }) {
   const body = hasFooter ? kids.slice(0, -1) : kids;
 
   return (
-    <div className="site-frame">
+    <div>
       <ScrollProgress />
-      <AdRail side="left" />
       <div className="site-main">
         {body}
        
         {hasFooter ? last : null}
       </div>
-      <AdRail side="right" />
     </div>
   );
 }

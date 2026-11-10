@@ -2,8 +2,15 @@ import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react
 import Icon from './Icons.jsx';
 import { useLang } from '../../i18n/LanguageContext.jsx';
 
-
-export default function TabSlider({ tabs, active, onChange, items, renderItem, labels, idPrefix = 'ts' }) {
+export default function TabSlider({
+  tabs,
+  active,
+  onChange,
+  items,
+  renderItem,
+  labels,
+  idPrefix = 'ts',
+}) {
   const { dir } = useLang();
   const rtl = dir === 'rtl';
 
@@ -153,7 +160,6 @@ export default function TabSlider({ tabs, active, onChange, items, renderItem, l
                 className={`ts-tab ${on ? 'is-active' : ''}`}
                 onClick={() => onChange(t.id)}
               >
-                {t.icon && <Icon name={t.icon} size={18} />}
                 <span className="ts-tab__label">{t.label}</span>
                 {t.count != null && <span className="ts-tab__count">{t.count}</span>}
               </button>

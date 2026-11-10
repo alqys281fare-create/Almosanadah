@@ -380,7 +380,7 @@ a.ad-card:hover {
   content: '';
   position: absolute;
   z-index: 0;
-  width: clamp(280px, 38vw, 560px);
+ site-main
   aspect-ratio: 1;
   border-radius: 50%;
   pointer-events: none;
@@ -540,7 +540,7 @@ a.ad-card:hover {
 }
 .about__logo {
   width: min(470px, 72%);
-  max-height: 80%;
+  max-height: 100%;
   aspect-ratio: 1;
   object-fit: contain;
   opacity: 0.1; /* transparent look — change this one number to make it lighter / stronger */

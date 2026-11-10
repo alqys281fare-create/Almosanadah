@@ -447,10 +447,10 @@ export default function ProgramsCatalog() {
 
           <section className="listing pc">
             <div className="container">
-              <div className="pc-toolbar">
+              {/* <div className="pc-toolbar">
                 <BackButton to={backTo} label={`${ui.back} · ${backLabel}`} />
                 <Breadcrumbs items={crumbs} />
-              </div>
+              </div> */}
 
               <div className="pc-stage" key={`${groupId}/${typeId}/${courseId}`}>
                 {invalid ? (

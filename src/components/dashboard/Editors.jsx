@@ -1713,5 +1713,5 @@ export const sections = [
   { key: 'branches', label: 'صفحة الفروع', icon: 'pin' },
   { key: 'theme', label: 'ألوان الموقع', icon: 'palette' },
   { key: 'footer', label: 'التذييل', icon: 'building' },
-  { key: 'settings', label: 'الحساب والنسخ', icon: 'settings' },
+ 
 ];
