@@ -11,9 +11,6 @@ import DetailsModal from '../common/DetailsModal.jsx';
 import { OfferCard, OfferDetails } from '../common/Offer';
 import { Block, Bullets, Tags, uniq } from '../common/DetailParts.jsx';
 
-/* ---------- helpers (module level: must stay ABOVE the components) ---------- */
-
-/* Always returns an array of strings, whatever shape the data has */
 const asList = (v) =>
   Array.isArray(v)
     ? v.filter(Boolean)
@@ -23,7 +20,6 @@ const asList = (v) =>
     ? Object.values(v).filter(Boolean)
     : [];
 
-/* Goals for a card: the type's own, then its objectives, then its courses' */
 const cardGoals = (t) => {
   const own = asList(t.goals);
   if (own.length) return own;
@@ -142,7 +138,7 @@ export default function ProgramTabs({ base = PROGRAMS_PATH, idPrefix = 'prog' })
   const regions = content.branches?.regions || [];
   const groups = cat.groups || [];
 
-  const [activeId, setActiveId] = useState(groups[0]?.id);
+  const [activeId, setActiveId] = useState('all');
 
   useEffect(() => {
     if (!groups.length) return;
