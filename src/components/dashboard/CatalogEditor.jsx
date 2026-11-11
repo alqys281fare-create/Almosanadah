@@ -2,6 +2,9 @@ import { useState } from 'react';
 import { useContent } from '../../context/ContentContext.jsx';
 import { PROGRAMS_PATH } from '../../data/Programscatalog.js';
 import Icon from '../common/Icons.jsx';
+import { OfferCard } from '../common/Offer.jsx';
+import { asList, cardGoals, typeHours } from '../common/TypeDetails.jsx';
+import { getSliderLabels } from '../../data/sliderLabels.js';
 import { AddButton, AreaField, BranchPicker, Grid, IconField, ImageField, Panel, Row, TextField, moveItem, useDraft } from './Fields.jsx';
 
 /*
@@ -58,7 +61,20 @@ const newCourse = (id, l) => ({
   practical: [],
   prerequisites: [],
 });
-const newType = (id, l) => ({ id, icon: 'cap', title: T[l].diploma, desc: '', duration: T[l].months, hours: 0, courses: [] });
+const newType = (id, l) => ({
+  id,
+  icon: 'cap',
+  title: T[l].diploma,
+  desc: '',
+  duration: T[l].months,
+  hours: 0,
+  goals: [],
+  outcomes: [],
+  skills: [],
+  practical: [],
+  prerequisites: [],
+  courses: [],
+});
 const newGroup = (id, l) => ({ id, icon: 'book', title: T[l].program, desc: '', types: [] });
 
 /* make sure every array the public pages call .map()/.length on exists, and numbers are numbers */
@@ -86,6 +102,12 @@ const cleanTree = (groups) =>
       ...t,
       title: String(t.title || '').trim() || '—',
       hours: num(t.hours),
+      goals: lines(asList(t.goals).join('\n')),
+      objectives: lines(asList(t.objectives).join('\n')),
+      outcomes: lines(asList(t.outcomes).join('\n')),
+      skills: lines(asList(t.skills).join('\n')),
+      practical: lines(asList(t.practical).join('\n')),
+      prerequisites: lines(asList(t.prerequisites).join('\n')),
       courses: (t.courses || []).map(cleanCourse),
     })),
   }));
@@ -149,6 +171,7 @@ function Entry({ index, last, icon, title, meta, onOpen, onMove, onRemove, openL
 export default function CatalogEditor({ notify }) {
   const { lang, allContents, updateLang } = useContent();
   const langName = lang === 'en' ? 'الإنجليزي (English)' : 'العربي';
+  const labels = getSliderLabels(lang, allContents[lang].courses?.labels);
 
   const [d, setD, dirty, discard] = useDraft({
     ar: allContents.ar.catalog?.groups || [],
@@ -257,17 +280,56 @@ export default function CatalogEditor({ notify }) {
   );
 
   /* ---------- level 2 : one diploma / course type ---------- */
+  /* the goals shown on the card and in the details window are ONE list: keep both fields in sync */
+  const typeGoals = type ? (asList(type.goals).length ? asList(type.goals) : asList(type.objectives)) : [];
+  const setTypeGoals = (v) => patchType({ goals: v, objectives: v });
+
   const typeView = type && !course && (
     <>
-      <h3 className="sub-title">بيانات الدبلوم / نوع الدورة</h3>
-      <TextField label="الاسم" value={type.title} onChange={(v) => patchType({ title: v })} />
-      <AreaField label="الوصف" value={type.desc} onChange={(v) => patchType({ desc: v })} rows={3} />
+      <div className="cat-split">
+        <div className="cat-split__form">
+          <h3 className="sub-title">١ · ما يظهر في البطاقة</h3>
+          <TextField label="الاسم" value={type.title} onChange={(v) => patchType({ title: v })} />
+          <AreaField label="الوصف المختصر" value={type.desc} onChange={(v) => patchType({ desc: v })} rows={2} />
+          <LinesField label="الأهداف (هدف في كل سطر — تظهر في البطاقة وفي نافذة التفاصيل)" value={typeGoals} onChange={setTypeGoals} rows={4} />
+          <Grid>
+            <TextField label="المدة (مثال: سنتان)" value={type.duration || ''} onChange={(v) => patchType({ duration: v })} />
+            <TextField label="إجمالي الساعات (فارغ = مجموع ساعات المقررات)" type="number" dir="ltr" min="0" value={type.hours ?? ''} onChange={(v) => patchType({ hours: v })} />
+          </Grid>
+          <IconField value={type.icon} onChange={(v) => patchType({ icon: v })} />
+          <ImageField label="صورة غلاف البطاقة (اختياري)" value={type.image || ''} onChange={(v) => patchType({ image: v })} maxW={800} />
+        </div>
+
+        <aside className="cat-split__preview" aria-label="معاينة البطاقة">
+          <span className="cat-split__label">معاينة مباشرة للبطاقة</span>
+          <OfferCard
+            icon={type.icon}
+            image={type.image}
+            badge={`${(type.courses || []).length} ${labels.courses}`}
+            title={type.title}
+            desc={type.desc}
+            goals={cardGoals({ ...type, goals: typeGoals })}
+            meta={[
+              { icon: 'calendar', text: type.duration },
+              { icon: 'clock', text: typeHours(type) ? `${typeHours(type)} ${labels.hours}` : '' },
+            ]}
+            where={`${(type.courses || []).length} ${labels.courses}`}
+            labels={labels}
+            onOpen={() => {}}
+          />
+        </aside>
+      </div>
+
+      <h3 className="sub-title">٢ · ما يظهر في نافذة «عرض التفاصيل» وصفحة البرنامج</h3>
+      <p className="field__hint">كل عنصر في سطر. اترك أي خانة فارغة ليؤخذ محتواها تلقائيًا من مقررات هذا البرنامج.</p>
       <Grid>
-        <TextField label="المدة (مثال: سنتان)" value={type.duration || ''} onChange={(v) => patchType({ duration: v })} />
-        <TextField label="إجمالي الساعات" type="number" dir="ltr" min="0" value={type.hours ?? ''} onChange={(v) => patchType({ hours: v })} />
+        <LinesField label="مخرجات التعلم" value={asList(type.outcomes)} onChange={(v) => patchType({ outcomes: v })} />
+        <LinesField label="المهارات المكتسبة" value={asList(type.skills)} onChange={(v) => patchType({ skills: v })} />
+        <LinesField label="التدريب العملي والتقييم" value={asList(type.practical)} onChange={(v) => patchType({ practical: v })} rows={3} />
+        <LinesField label="المتطلبات والشروط المسبقة" value={asList(type.prerequisites)} onChange={(v) => patchType({ prerequisites: v })} rows={3} />
       </Grid>
-      <IconField value={type.icon} onChange={(v) => patchType({ icon: v })} />
-      <ImageField label="صورة غلاف البطاقة (اختياري)" value={type.image || ''} onChange={(v) => patchType({ image: v })} maxW={800} />
+
+      <h3 className="sub-title">٣ · الفروع</h3>
       <BranchPicker
         label="الفروع التي يُقدَّم فيها هذا البرنامج"
         value={type}
@@ -276,7 +338,7 @@ export default function CatalogEditor({ notify }) {
         onChange={(patch) => both((g) => mapType(g, sel.g, sel.t, (x) => ({ ...x, ...patch })))}
       />
 
-      <h3 className="sub-title">المقررات ({(type.courses || []).length})</h3>
+      <h3 className="sub-title">٤ · المقررات ({(type.courses || []).length})</h3>
       <div className="stack">
         {(type.courses || []).map((c, i, arr) => (
           <Entry

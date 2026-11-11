@@ -25,7 +25,6 @@ import {
 } from './Fields.jsx';
 import { SLIDER_LABELS } from '../../data/sliderLabels.js';
 import { getCatalog } from '../../data/Programscatalog.js';
-import { AD_SLOT_DEFS, normalizeAds } from '../../Utils/ads.js';
 
 /* =============== Overview =============== */
 export function Overview({ go }) {
@@ -46,7 +45,6 @@ export function Overview({ go }) {
     { k: 'testimonials', icon: 'users', label: 'آراء الطلاب', n: content.testimonials.items.length },
     { k: 'partners', icon: 'users', label: 'الشركاء', n: content.partners.items.length },
     { k: 'faq', icon: 'book', label: 'الأسئلة الشائعة', n: content.faq.items.length },
-    { k: 'ads', icon: 'image', label: 'الإعلانات', n: content.ads.enabled === false ? 'متوقفة' : 4 },
     { k: 'branches', icon: 'pin', label: 'الفروع', n: content.branches.items.length },
     { k: 'theme', icon: 'palette', label: 'ألوان الموقع', n: '' },
   ];
@@ -648,15 +646,14 @@ export function FooterEditor({ notify }) {
 /* =============== Account + backup =============== */
 export function SettingsEditor({ notify }) {
   const { credentials, updateCredentials } = useAuth();
-  const { content, replaceAll, reset, lang, allContents } = useContent();
+  const { allContents } = useContent();
   const { theme } = useTheme();
-  const [form, setForm] = useState({ username: credentials.username, current: '', password: '', confirm: '' });
+  const [form, setForm] = useState({ username: credentials?.username || '', current: '', password: '', confirm: '' });
   const [error, setError] = useState('');
-  const fileRef = useRef(null);
 
   const saveCreds = () => {
     setError('');
-    if (form.current !== credentials.password) return setError('كلمة المرور الحالية غير صحيحة');
+    if (!credentials || form.current !== credentials.password) return setError('كلمة المرور الحالية غير صحيحة');
     if (!form.username.trim()) return setError('اسم المستخدم مطلوب');
     if (form.password && form.password.length < 6) return setError('كلمة المرور الجديدة يجب ألا تقل عن 6 أحرف');
     if (form.password && form.password !== form.confirm) return setError('تأكيد كلمة المرور غير مطابق');
@@ -665,29 +662,9 @@ export function SettingsEditor({ notify }) {
     notify('تم تحديث بيانات الدخول');
   };
 
-  const exportJson = () => {
-    const blob = new Blob([JSON.stringify(content, null, 2)], { type: 'application/json' });
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = `almosanadah-content-${lang}.json`;
-    a.click();
-    URL.revokeObjectURL(a.href);
-  };
-
-  const importJson = async (e) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    try {
-      replaceAll(JSON.parse(await file.text()));
-      notify('تم استيراد المحتوى');
-    } catch {
-      notify('ملف غير صالح', 'error');
-    }
-    e.target.value = '';
-  };
-
   return (
     <>
+      {credentials && (
       <Panel title="بيانات الدخول" hint="غيّر اسم المستخدم وكلمة المرور الخاصة بلوحة التحكم.">
         <Grid>
           <TextField label="اسم المستخدم" dir="ltr" value={form.username} onChange={(v) => setForm((f) => ({ ...f, username: v }))} />
@@ -700,6 +677,7 @@ export function SettingsEditor({ notify }) {
           <Icon name="lock" size={18} /> تحديث بيانات الدخول
         </button>
       </Panel>
+      )}
 
       <Panel title="نشر المحتوى للجميع" hint="كل حفظ تقوم به يُنشر تلقائيًا للزوار في أي متصفح. استخدم هذا الزر لنشر كل المحتوى الحالي (العربي والإنجليزي والألوان) دفعة واحدة، مثلًا لنقل تعديلات قديمة محفوظة في هذا المتصفح إلى الخادم.">
         <button
@@ -712,30 +690,6 @@ export function SettingsEditor({ notify }) {
         >
           <Icon name="upload" size={18} /> نشر المحتوى الحالي كافتراضي للجميع
         </button>
-      </Panel>
-
-      <Panel title="النسخ الاحتياطي" hint={`صدّر المحتوى (${lang === 'en' ? 'English' : 'العربية'}) كملف JSON أو استورد نسخة سابقة، أو استرجع الوضع الافتراضي.`}>
-        <div className="btn-row">
-          <button type="button" className="btn btn--ghost" onClick={exportJson}>
-            <Icon name="download" size={18} /> تصدير المحتوى
-          </button>
-          <button type="button" className="btn btn--ghost" onClick={() => fileRef.current?.click()}>
-            <Icon name="upload" size={18} /> استيراد المحتوى
-          </button>
-          <input ref={fileRef} type="file" accept="application/json" hidden onChange={importJson} />
-          <button
-            type="button"
-            className="btn btn--ghost danger"
-            onClick={() => {
-              if (window.confirm('سيتم استرجاع المحتوى الافتراضي للغة المحددة حاليًا فقط. هل أنت متأكد؟')) {
-                reset();
-                notify('تمت إعادة المحتوى الافتراضي');
-              }
-            }}
-          >
-            <Icon name="reset" size={18} /> استرجاع الافتراضي
-          </button>
-        </div>
       </Panel>
     </>
   );
@@ -847,6 +801,7 @@ const LABEL_NAMES = {
   fullPlan: 'نص «الخطة الدراسية الكاملة»', branches: 'عنوان «الفروع المتاحة»', branchesHint: 'وصف فلتر المناطق', allBranches: 'نص «متاح في جميع الفروع»',
   branchWord: 'كلمة «فرع»', noBranches: 'رسالة عدم تحديد فروع', allRegions: 'نص «كل المناطق»', call: 'نص «اتصال»', openMap: 'نص «الموقع على الخريطة»',
   register: 'زر «سجّل الآن»', contact: 'نص «استفسر عن البرنامج»', openPage: 'زر «صفحة البرنامج»',
+  searchPlaceholder: 'نص خانة البحث', searchLabel: 'وصف خانة البحث (قارئ الشاشة)', noResults: 'رسالة «لا توجد نتائج»', clearSearch: 'زر «مسح البحث»',
 };
 
 export function UiLabelsEditor({ notify }) {
@@ -1286,84 +1241,6 @@ const AD_POSITIONS = {
   'right-2': 'الجانب الأيمن — الإعلان السفلي',
 };
 
-export function AdsEditor({ notify }) {
-  const { allContents, updateLang } = useContent();
-
-  const pick = (l) => {
-    const a = normalizeAds(allContents[l].ads, {});
-    return { label: a.label || '', slots: a.slots };
-  };
-  const [a, setA, dirty, discard] = useDraft({
-    enabled: allContents.ar.ads.enabled !== false && allContents.en.ads.enabled !== false,
-    ar: pick('ar'),
-    en: pick('en'),
-  });
-
-  const patchSlot = (l, id, patch) =>
-    setA((x) => ({ ...x, [l]: { ...x[l], slots: x[l].slots.map((sl) => (sl.id === id ? { ...sl, ...patch } : sl)) } }));
-  const patchLang = (l, patch) => setA((x) => ({ ...x, [l]: { ...x[l], ...patch } }));
-
-  const save = () => {
-    ['ar', 'en'].forEach((l) => updateLang(l, 'ads', { enabled: a.enabled, label: a[l].label, slots: a[l].slots }));
-    notify('تم حفظ الإعلانات');
-  };
-
-  const langBox = (l, title, slot) => (
-    <div className="ad-lang" dir={l === 'ar' ? 'rtl' : 'ltr'}>
-      <h4 className="ad-lang__title">{title}</h4>
-      <ImageField
-        label={l === 'ar' ? 'صورة الإعلان (تظهر في النسخة العربية فقط)' : 'Advertisement image (shown on the English site only)'}
-        value={slot.image || ''}
-        onChange={(v) => patchSlot(l, slot.id, { image: v })}
-        maxW={700}
-        jpeg
-      />
-      <TextField label="الرابط عند الضغط" dir="ltr" value={slot.href || ''} onChange={(v) => patchSlot(l, slot.id, { href: v })} placeholder="/courses أو #contact أو https://…" />
-      <Grid>
-        <TextField label="عنوان البانر الافتراضي" value={slot.title || ''} onChange={(v) => patchSlot(l, slot.id, { title: v })} />
-        <TextField label="النص الصغير للبانر الافتراضي" value={slot.text || ''} onChange={(v) => patchSlot(l, slot.id, { text: v })} />
-      </Grid>
-    </div>
-  );
-
-  return (
-    <Panel
-      title="الإعلانات"
-      hint="أربعة مواضع: إعلانان على اليسار وإعلانان على اليمين. لكل موضع صورة عربية وصورة إنجليزية منفصلتان، وتظهر كل واحدة في لغتها فقط. المقاس المقترح 300×690 بكسل (نسبة 1:2.3). بدون صورة يظهر بانر المعهد المتحرك، وإن تُرك العنوان والنص والصورة فارغة يختفي الموضع."
-      dirty={dirty}
-      onDiscard={discard}
-      onSave={save}
-    >
-      <ToggleField
-        label="إظهار الإعلانات"
-        hint="تظهر على جانبي الصفحة في الشاشات الكبيرة (1600 بكسل فأكثر)، وفي شبكة فوق التذييل على باقي الأجهزة."
-        checked={a.enabled}
-        onChange={(v) => setA((x) => ({ ...x, enabled: v }))}
-      />
-      <Grid>
-        <TextField label="كلمة «إعلان» فوق البوستر (العربية)" value={a.ar.label} onChange={(v) => patchLang('ar', { label: v })} />
-        <TextField label="Tag above the poster (English)" dir="ltr" value={a.en.label} onChange={(v) => patchLang('en', { label: v })} />
-      </Grid>
-
-      {AD_SLOT_DEFS.map((def, i) => (
-        <section className="ad-pos" key={def.id}>
-          <h3 className="sub-title">
-            <span className="row-card__num">{i + 1}</span> {AD_POSITIONS[def.id]}
-          </h3>
-          <div className="ad-pos__langs">
-            {langBox('ar', 'النسخة العربية', a.ar.slots.find((x) => x.id === def.id))}
-            {langBox('en', 'النسخة الإنجليزية (English)', a.en.slots.find((x) => x.id === def.id))}
-          </div>
-        </section>
-      ))}
-    </Panel>
-  );
-}
-
-/*
- * Dashboard navigation, grouped. `sections` stays a flat list (the page title is looked up in it),
- * `sectionGroups` is what the sidebar renders.
- */
 export const sectionGroups = [
   {
     title: 'عام',
@@ -1388,7 +1265,6 @@ export const sectionGroups = [
       { key: 'partners', label: 'الشركاء', icon: 'users' },
       { key: 'faq', label: 'الأسئلة الشائعة', icon: 'book' },
       { key: 'contact', label: 'قسم تواصل معنا', icon: 'mail' },
-      { key: 'ads', label: 'الإعلانات', icon: 'image' },
     ],
   },
   {
@@ -1401,7 +1277,7 @@ export const sectionGroups = [
   },
   {
     title: 'النظام',
-    items: [{ key: 'settings', label: 'الإعدادات والنسخ الاحتياطي', icon: 'settings' }],
+    items: [{ key: 'settings', label: 'الإعدادات', icon: 'settings' }],
   },
 ];
 

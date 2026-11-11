@@ -1227,3 +1227,25 @@ textarea.input {
 .hub__tab:hover { border-color: var(--red); }
 .hub__tab.is-active { background: var(--red); border-color: var(--red); color: #fff; box-shadow: var(--shadow-red); }
 .hub__tab.is-active small { color: rgba(255, 255, 255, 0.85); }
+
+/* ---- catalog editor: form + live card preview ---- */
+.cat-split { display: grid; grid-template-columns: minmax(0, 1fr) minmax(260px, 340px); gap: 22px; align-items: start; }
+.cat-split__preview {
+  position: sticky;
+  top: 90px;
+  display: grid;
+  gap: 10px;
+  padding: 14px;
+  border: 1.5px dashed var(--line);
+  border-radius: 16px;
+  background: #f6f6f9;
+  pointer-events: none; /* it is a preview, not a control */
+  user-select: none;
+}
+.cat-split__label { font-size: 0.78rem; font-weight: 800; color: var(--muted); }
+.cat-split__preview .oc { width: 100%; }
+.cat-split__preview .oc:hover { transform: none; }
+@media (max-width: 1100px) {
+  .cat-split { grid-template-columns: 1fr; }
+  .cat-split__preview { position: static; order: -1; max-width: 360px; }
+}

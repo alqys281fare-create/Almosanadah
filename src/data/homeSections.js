@@ -1,12 +1,4 @@
-/*
- * Home page sections the admin can re-order / hide (dashboard → «ترتيب أقسام الصفحة الرئيسية»).
- *
- *  - `pinned` sections always stay at the top, in this order: the first screen (hero + features) is laid
- *    out to fill exactly one viewport, so it cannot be moved without leaving a gap.
- *  - `bg` is the CSS colour the section paints, so the wave / curve divider at the top of the NEXT
- *    section can blend into it whatever the order is (see SectionFlow in components/common).
- *  - `anchor` is the element id the header links (#about, #contact …) scroll to.
- */
+
 export const PINNED_SECTIONS = ['hero', 'features'];
 
 export const HOME_SECTIONS = {

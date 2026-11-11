@@ -1,4 +1,11 @@
+import { createContext, useContext } from 'react';
 
+/*
+ * The wave / curve at the top of a section must be painted in the colour of the section ABOVE it.
+ * Sections hard-code that colour for the default order; when the admin re-orders the home page,
+ * <SectionFlow.Provider value="…"> (see pages/Home.jsx) supplies the real previous colour instead.
+ */
+export const SectionFlow = createContext(null);
 const wave = (amp, base = 64) => {
   let d = `M0 ${base}`;
   for (let i = 0; i < 4; i += 1) {
@@ -11,8 +18,10 @@ const FRONT = wave(34);
 const BACK = wave(46, 58);
 
 export default function SectionDivider({ from = 'var(--card)', variant = 'wave', flip = false }) {
+  const flow = useContext(SectionFlow);
+  const fill = flow || from;
   return (
-    <div className={`sd sd--${variant} ${flip ? 'sd--flip' : ''}`} style={{ '--sd-fill': from }} aria-hidden="true">
+    <div className={`sd sd--${variant} ${flip ? 'sd--flip' : ''}`} style={{ '--sd-fill': fill }} aria-hidden="true">
       {variant === 'wave' && (
         <>
           <svg className="sd__layer sd__layer--back" viewBox="0 0 2880 120" preserveAspectRatio="none">

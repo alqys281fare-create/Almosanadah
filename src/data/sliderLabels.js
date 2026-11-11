@@ -38,6 +38,10 @@ const ar = {
   register: 'سجّل الآن',
   contact: 'استفسر عن البرنامج',
   openPage: 'صفحة البرنامج',
+  searchPlaceholder: 'ابحث عن برنامج أو دبلوم أو دورة...',
+  searchLabel: 'بحث في البرامج',
+  noResults: 'لا توجد نتائج مطابقة لبحثك.',
+  clearSearch: 'مسح البحث',
 };
 const en = {
   tabsLabel: 'Program categories',
@@ -74,6 +78,10 @@ const en = {
   register: 'Register now',
   contact: 'Ask about this program',
   openPage: 'Program page',
+  searchPlaceholder: 'Search for a program, diploma or course...',
+  searchLabel: 'Search programs',
+  noResults: 'No results match your search.',
+  clearSearch: 'Clear search',
 };
 
 export const SLIDER_LABELS = { ar, en };

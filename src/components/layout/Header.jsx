@@ -6,9 +6,7 @@ import { useContent } from "../../context/ContentContext.jsx";
 import { useLang } from "../../i18n/LanguageContext.jsx";
 import Icon from "../common/Icons.jsx";
 
-/* Header fit levels.
-   0 = full header, 1 / 2 = progressively tighter spacing (every link stays visible),
-   3 (MAX_FIT) = burger + drawer. Nothing is ever hidden: if the links cannot fit, the burger menu takes over. */
+
 const MAX_FIT = 3;
 const GAP = 14;
 
