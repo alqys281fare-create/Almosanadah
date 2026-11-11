@@ -5,7 +5,7 @@ import { useContent } from '../../context/ContentContext.jsx';
 import { useLang } from '../../i18n/LanguageContext.jsx';
 import Icon from '../common/Icons.jsx';
 import Reveal from '../common/Reveal.jsx';
-import '../../styles/branchescta.css';
+import '../../styles/Branchescta.css';
 
 const DEFAULT_IMAGE = 'image.png';
 

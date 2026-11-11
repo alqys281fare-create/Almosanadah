@@ -5,6 +5,8 @@ import { ContentLangScope, useContent } from '../context/ContentContext.jsx';
 import { useLang } from '../i18n/LanguageContext.jsx';
 import Icon from '../components/common/Icons.jsx';
 import AdmissionEditor from '../components/dashboard/AdmissionEditor.jsx';
+import HomeLayoutEditor from '../components/dashboard/HomeLayoutEditor.jsx';
+import ProgramsHub from '../components/dashboard/ProgramsHub.jsx';
 import {
   AboutEditor,
   AccreditationEditor,
@@ -14,19 +16,16 @@ import {
   FaqEditor,
   AdsEditor,
   BranchesEditor,
-  CoursesEditor,
-  CourseFiltersEditor,
   ThemeEditor,
-  UiLabelsEditor,
   ContactEditor,
   FeaturesEditor,
   FooterEditor,
   HeroEditor,
   Overview,
-  ProgramsEditor,
   SettingsEditor,
   SiteEditor,
   StatsEditor,
+  sectionGroups,
   sections,
 } from '../components/dashboard/Editors.jsx';
 
@@ -34,7 +33,11 @@ function Shell({ editLang, setEditLang }) {
   const { logout, credentials } = useAuth();
   const { content } = useContent(); // content of the language being edited
   const navigate = useNavigate();
-  const [active, setActive] = useState(() => localStorage.getItem('almosanadah:tab') || 'overview');
+  const [active, setActive] = useState(() => {
+    const saved = localStorage.getItem('almosanadah:tab') || 'overview';
+    // pages that were merged into «البرامج والدورات»
+    return ['courses', 'filters', 'labels'].includes(saved) ? 'programs' : saved;
+  });
   const [menu, setMenu] = useState(false);
   const [toast, setToast] = useState(null);
 
@@ -74,11 +77,10 @@ function Shell({ editLang, setEditLang }) {
   const view = {
     overview: <Overview go={choose} />,
     site: <SiteEditor notify={notify} />,
+    layout: <HomeLayoutEditor notify={notify} go={choose} />,
     hero: <HeroEditor notify={notify} />,
     features: <FeaturesEditor notify={notify} />,
-    programs: <ProgramsEditor notify={notify} />,
-    filters: <CourseFiltersEditor notify={notify} go={choose} />,
-    labels: <UiLabelsEditor notify={notify} />,
+    programs: <ProgramsHub notify={notify} />,
     admission: <AdmissionEditor notify={notify} />,
     contact: <ContactEditor notify={notify} />,
     gallery: <GalleryEditor notify={notify} />,
@@ -89,7 +91,6 @@ function Shell({ editLang, setEditLang }) {
     ads: <AdsEditor notify={notify} />,
     about: <AboutEditor notify={notify} />,
     stats: <StatsEditor notify={notify} />,
-    courses: <CoursesEditor notify={notify} go={choose} />,
     branches: <BranchesEditor notify={notify} />,
     theme: <ThemeEditor notify={notify} />,
     footer: <FooterEditor notify={notify} />,
@@ -106,10 +107,21 @@ function Shell({ editLang, setEditLang }) {
           <span>لوحة التحكم</span>
         </div>
         <nav className="dash__nav">
-          {sections.map((s) => (
-            <button key={s.key} type="button" className={`dash__link ${active === s.key ? 'is-active' : ''}`} onClick={() => choose(s.key)}>
-              <Icon name={s.icon} size={20} /> {s.label}
-            </button>
+          {sectionGroups.map((g) => (
+            <div key={g.title} className="dash__group">
+              <span className="dash__group-title">{g.title}</span>
+              {g.items.map((s) => (
+                <button
+                  key={s.key}
+                  type="button"
+                  className={`dash__link ${active === s.key ? 'is-active' : ''}`}
+                  aria-current={active === s.key ? 'page' : undefined}
+                  onClick={() => choose(s.key)}
+                >
+                  <Icon name={s.icon} size={20} /> {s.label}
+                </button>
+              ))}
+            </div>
           ))}
         </nav>
         <div className="dash__foot">

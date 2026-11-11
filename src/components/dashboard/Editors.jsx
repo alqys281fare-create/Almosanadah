@@ -4,7 +4,6 @@ import { useAuth } from '../../context/AuthContext.jsx';
 import { DEFAULT_THEME, THEME_PRESETS, applyTheme, sanitizeTheme, useTheme } from '../../context/ThemeContext.jsx';
 import { contrast, isHex } from '../../Utils/color.js';
 import { saveSite } from '../../api.js';
-import { allTabLabel, buildTabs, sameId } from '../../Utils/catalog.js';
 import Icon from '../common/Icons.jsx';
 import {
   AddButton,
@@ -24,10 +23,8 @@ import {
   nextId,
   useDraft,
 } from './Fields.jsx';
-import CatalogEditor from './CatalogEditor.jsx';
 import { SLIDER_LABELS } from '../../data/sliderLabels.js';
 import { getCatalog } from '../../data/Programscatalog.js';
-import { syncAvailability } from '../../Utils/branches.js';
 import { AD_SLOT_DEFS, normalizeAds } from '../../Utils/ads.js';
 
 /* =============== Overview =============== */
@@ -37,10 +34,10 @@ export function Overview({ go }) {
     {
       k: 'programs',
       icon: 'layers',
-      label: 'البرامج والمقررات',
+      label: 'البرامج والدورات (مقررات)',
       n: (content.catalog?.groups || []).reduce((n, g) => n + (g.types || []).reduce((m, t) => m + (t.courses || []).length, 0), 0),
     },
-    { k: 'courses', icon: 'cap', label: 'صفحة الدورات', n: content.courses.items.length },
+    { k: 'layout', icon: 'layers', label: 'ترتيب الصفحة الرئيسية', n: '' },
     { k: 'features', icon: 'cert', label: 'المميزات', n: content.features.length },
     { k: 'stats', icon: 'chart', label: 'الإحصائيات', n: content.stats.length },
     { k: 'about', icon: 'book', label: 'فقرات من نحن', n: content.about.paragraphs.length },
@@ -336,173 +333,6 @@ export function FeaturesEditor({ notify }) {
   );
 }
 
-/* =============== Programs (home section) =============== */
-export function CourseFiltersEditor({ notify, go }) {
-  const { content, updateSection } = useContent();
-
-  // The program TYPES live in courses.programs (shared by the home page tabs and the courses page filter).
-  const source = {
-    title: content.programs.title,
-    description: content.programs.description,
-    detailsLabel: content.programs.detailsLabel || '',
-    allLabel: allTabLabel(content),
-    types: content.courses.programs || [],
-    items: content.programs.items || [],
-  };
-  const [p, setP, dirty, discard] = useDraft(source);
-  const set = (k) => (v) => setP((x) => ({ ...x, [k]: v }));
-  const typeOptions = p.types.map((t) => ({ value: String(t.id), label: t.label }));
-  const courseCount = (id) => (content.courses.items || []).filter((c) => sameId(c.program, id)).length;
-
-  const patchType = (i, v) => setP((x) => ({ ...x, types: x.types.map((t, j) => (j === i ? { ...t, label: v } : t)) }));
-  const addType = () =>
-    setP((x) => ({ ...x, types: [...x.types, { id: `p${Date.now().toString(36)}`, label: 'برنامج جديد' }] }));
-  const removeType = (i) => {
-    if (p.types.length <= 1) return notify('يجب أن يبقى برنامج واحد على الأقل', 'error');
-    setP((x) => {
-      const gone = x.types[i].id;
-      const rest = x.types.filter((_, j) => j !== i);
-      // featured programs of the deleted type move to the first remaining type
-      return {
-        ...x,
-        types: rest,
-        items: x.items.map((it) => (sameId(it.program, gone) ? { ...it, program: rest[0].id, category: rest[0].id } : it)),
-      };
-    });
-  };
-
-  const patchItem = (i, k, v) => setP((x) => ({ ...x, items: x.items.map((t, j) => (j === i ? { ...t, [k]: v } : t)) }));
-  const addItem = () =>
-    setP((x) => ({
-      ...x,
-      items: [
-        ...x.items,
-        {
-          id: nextId(x.items),
-          program: x.types[0]?.id ?? '',
-          category: x.types[0]?.id ?? '',
-          title: 'برنامج جديد',
-          duration: '3 أشهر',
-          hours: '120 ساعة تدريبية',
-          image: '',
-          href: '',
-          topics: ['المحور الأول', 'المحور الثاني'],
-        },
-      ],
-    }));
-
-  const save = () => {
-    const types = p.types.map((t) => ({ ...t, label: t.label.trim() || 'برنامج' }));
-    const fallback = types[0]?.id ?? '';
-    const valid = (id) => types.some((t) => sameId(t.id, id));
-    const items = p.items.map((it) => ({
-      ...it,
-      program: valid(it.program) ? it.program : fallback,
-      category: valid(it.program) ? it.program : fallback,
-      topics: (it.topics || []).map((x) => String(x).trim()).filter(Boolean),
-    }));
-    // courses of a deleted program type move to the first remaining type, so none of them disappears
-    const courseItems = (content.courses.items || []).map((c) => (valid(c.program) ? c : { ...c, program: fallback }));
-
-    updateSection('programs', {
-      title: p.title,
-      description: p.description,
-      detailsLabel: p.detailsLabel,
-      items,
-      tabs: buildTabs(types, p.allLabel),
-    });
-    updateSection('courses', { programs: types, items: courseItems });
-    notify('تم حفظ البرامج');
-  };
-
-  return (
-    <Panel
-      title="تصنيفات صفحة الدورات"
-      hint="أنواع البرامج المستخدمة كتبويبات وفلاتر في الصفحة المسطّحة /courses. هيكل البرامج ← الدبلومات ← المقررات (صفحة /programs) يُدار من قسم «البرامج والدبلومات والمقررات»."
-      dirty={dirty}
-      onDiscard={discard}
-      onSave={save}
-      extra={
-        <a href="/#programs" target="_blank" rel="noreferrer" className="btn btn--ghost btn--sm">
-          <Icon name="eye" size={16} /> معاينة
-        </a>
-      }
-    >
-      <Grid>
-        <TextField label="عنوان القسم" value={p.title} onChange={set('title')} />
-        <TextField label="نص زر «عرض التفاصيل»" value={p.detailsLabel} onChange={set('detailsLabel')} />
-      </Grid>
-      <AreaField label="وصف القسم" value={p.description} onChange={set('description')} rows={3} />
-
-      {/* ---------- program types ---------- */}
-      <h3 className="sub-title">أنواع البرامج ({p.types.length})</h3>
-      <p className="field__hint">
-        كل برنامج هنا يظهر كتبويب في الصفحة الرئيسية وكفلتر في صفحة الدورات. يمكنك إضافة أي عدد من البرامج.
-      </p>
-      <div className="stack">
-        {p.types.map((t, i) => (
-          <Row key={t.id} index={i} title={t.label} onRemove={() => removeType(i)}>
-            <Grid>
-              <TextField label="اسم البرنامج" value={t.label} onChange={(v) => patchType(i, v)} />
-              <p className="field__hint" style={{ alignSelf: 'end', margin: 0 }}>
-                عدد الدورات داخله: <strong>{courseCount(t.id)}</strong>
-              </p>
-            </Grid>
-          </Row>
-        ))}
-      </div>
-      <AddButton onClick={addType}>إضافة برنامج</AddButton>
-      <TextField label="نص تبويب «عرض الكل»" value={p.allLabel} onChange={set('allLabel')} />
-
-      {/* ---------- featured program cards ---------- */}
-      <h3 className="sub-title">بطاقات البرامج المميزة ({p.items.length})</h3>
-      <div className="stack">
-        {p.items.map((it, i) => (
-          <Row
-            key={it.id}
-            index={i}
-            title={it.title}
-            onRemove={() => setP((x) => ({ ...x, items: x.items.filter((_, j) => j !== i) }))}
-          >
-            <Grid>
-              <TextField label="عنوان البرنامج" value={it.title} onChange={(v) => patchItem(i, 'title', v)} />
-              <SelectField
-                label="يتبع برنامج"
-                value={String(it.program ?? '')}
-                onChange={(v) => {
-                  patchItem(i, 'program', v);
-                  patchItem(i, 'category', v);
-                }}
-                options={typeOptions}
-              />
-              <TextField label="المدة" value={it.duration} onChange={(v) => patchItem(i, 'duration', v)} />
-              <TextField label="الساعات التدريبية" value={it.hours} onChange={(v) => patchItem(i, 'hours', v)} />
-            </Grid>
-            <AreaField
-              label="المحاور (كل محور في سطر)"
-              value={(it.topics || []).join('\n')}
-              onChange={(v) => patchItem(i, 'topics', v.split('\n'))}
-              rows={4}
-            />
-            <TextField label="رابط البطاقة (اختياري)" dir="ltr" value={it.href || ''} onChange={(v) => patchItem(i, 'href', v)} />
-            <ImageField label="صورة البرنامج" value={it.image || ''} onChange={(v) => patchItem(i, 'image', v)} maxW={900} />
-          </Row>
-        ))}
-      </div>
-      <AddButton onClick={addItem}>إضافة بطاقة برنامج</AddButton>
-
-      <p className="field__hint">
-        المحتوى منفصل لكل لغة: بعد الإضافة بالعربية بدّل «لغة المحتوى» إلى English وأضف نفس العنصر هناك.
-      </p>
-      {go && (
-        <button type="button" className="btn btn--ghost btn--sm" onClick={() => go('courses')}>
-          <Icon name="cap" size={16} /> إدارة الدورات
-        </button>
-      )}
-    </Panel>
-  );
-}
-
 /* =============== Programs → Diplomas → Courses (the /programs pages) =============== */
 export function ProgramsEditor({ notify }) {
   const { content, updateSection } = useContent();
@@ -510,8 +340,8 @@ export function ProgramsEditor({ notify }) {
   return (
     <>
       <Panel
-        title="عنوان قسم البرامج في الصفحة الرئيسية"
-        hint="النص الذي يظهر فوق بطاقات البرامج الرئيسية في الصفحة الرئيسية."
+        title="قسم البرامج في الصفحة الرئيسية"
+        hint="العنوان والوصف اللذان يظهران فوق بطاقات البرامج في الصفحة الرئيسية. البطاقات نفسها تُدار من «الكتالوج»."
         dirty={dirty}
         onDiscard={discard}
         onSave={() => {
@@ -527,7 +357,6 @@ export function ProgramsEditor({ notify }) {
         <TextField label="عنوان القسم" value={p.title} onChange={(v) => setP((x) => ({ ...x, title: v }))} />
         <AreaField label="وصف القسم" value={p.description} onChange={(v) => setP((x) => ({ ...x, description: v }))} rows={3} />
       </Panel>
-      <CatalogEditor notify={notify} />
     </>
   );
 }
@@ -1004,166 +833,6 @@ export function ThemeEditor({ notify }) {
       >
         <Icon name="reset" size={18} /> استرجاع الألوان الافتراضية
       </button>
-    </Panel>
-  );
-}
-
-/* =============== Courses page =============== */
-export function CoursesEditor({ notify, go }) {
-  const { content, lang, allContents, updateSection, updateLang } = useContent();
-  const branchList = content.branches?.items || [];
-  const regionList = content.branches?.regions || [];
-  const [c, setC, dirty, discard] = useDraft(content.courses);
-  const [filter, setFilter] = useState('all'); // dashboard-only: narrow the long course list by program
-  const set = (k) => (v) => setC((x) => ({ ...x, [k]: v }));
-  const patchCat = (i, k, v) => setC((x) => ({ ...x, categories: x.categories.map((t, j) => (j === i ? { ...t, [k]: v } : t)) }));
-  const patchItem = (i, k, v) => setC((x) => ({ ...x, items: x.items.map((t, j) => (j === i ? { ...t, [k]: v } : t)) }));
-  const catOptions = c.categories.map((t) => ({ value: String(t.id), label: t.label }));
-  const programs = c.programs || [];
-  const programOptions = programs.map((t) => ({ value: String(t.id), label: t.label }));
-  const countOf = (id) => c.items.filter((it) => id === 'all' || sameId(it.program, id)).length;
-
-  const removeCat = (i) =>
-    setC((x) => {
-      const gone = x.categories[i].id;
-      const rest = x.categories.filter((_, j) => j !== i);
-      const fallback = rest[0]?.id ?? '';
-      return { ...x, categories: rest, items: x.items.map((it) => (sameId(it.category, gone) ? { ...it, category: fallback } : it)) };
-    });
-
-  const addCourse = () =>
-    setC((x) => ({
-      ...x,
-      items: [
-        ...x.items,
-        {
-          id: nextId(x.items),
-          category: x.categories[0]?.id ?? 1,
-          // a new course starts in the program that is currently selected in the filter
-          program: filter !== 'all' ? filter : x.programs?.[0]?.id ?? '',
-          icon: 'book',
-          title: 'دورة جديدة',
-          href: '',
-          image: '',
-          desc: '',
-          duration: '',
-          hours: 0,
-          highlights: [],
-          requirements: [],
-          branchMode: 'all',
-          branchIds: [],
-        },
-      ],
-    }));
-
-  return (
-    <Panel
-      title="صفحة الدورات"
-      hint="نصوص الصفحة، الفئات التدريبية، والدورات المعروضة (صفحة /courses). كل دورة تتبع برنامجًا وفئة."
-      dirty={dirty}
-      onDiscard={discard}
-      onSave={() => {
-        const items = c.items.map((it) => ({
-          ...it,
-          hours: Number(it.hours) || 0,
-          highlights: (it.highlights || []).map((x) => String(x).trim()).filter(Boolean),
-          requirements: (it.requirements || []).map((x) => String(x).trim()).filter(Boolean),
-        }));
-        updateSection('courses', { ...c, items });
-        // the branches a course is offered at are the same in both languages → keep the other copy in sync
-        const other = lang === 'ar' ? 'en' : 'ar';
-        updateLang(other, 'courses', { items: syncAvailability(items, allContents[other].courses?.items || []) });
-        notify('تم حفظ صفحة الدورات');
-      }}
-      extra={
-        <a href="/courses" target="_blank" rel="noreferrer" className="btn btn--ghost btn--sm">
-          <Icon name="eye" size={16} /> معاينة
-        </a>
-      }
-    >
-      <Grid>
-        <TextField label="عنوان الصفحة" value={c.title} onChange={set('title')} />
-        <TextField label="العنوان الفرعي" value={c.subtitle} onChange={set('subtitle')} />
-        <TextField label="نص خانة البحث" value={c.searchPlaceholder} onChange={set('searchPlaceholder')} />
-        <TextField label="نص زر البحث" value={c.searchButton} onChange={set('searchButton')} />
-        <TextField label="عنوان الفئات" value={c.categoriesTitle} onChange={set('categoriesTitle')} />
-        <TextField label="نص «كل الدورات»" value={c.allLabel} onChange={set('allLabel')} />
-        <TextField label="نص «كل البرامج»" value={c.allProgramsLabel} onChange={set('allProgramsLabel')} />
-      </Grid>
-      <TextField label="رسالة عدم وجود نتائج" value={c.empty} onChange={set('empty')} />
-      <ImageField label="صورة البانر (اختياري)" value={c.banner} onChange={set('banner')} maxW={1600} />
-
-      <h3 className="sub-title">الفئات التدريبية ({c.categories.length})</h3>
-      <div className="stack">
-        {c.categories.map((cat, i) => (
-          <Row key={cat.id} index={i} title={cat.label} onRemove={() => removeCat(i)}>
-            <TextField label="اسم الفئة" value={cat.label} onChange={(v) => patchCat(i, 'label', v)} />
-            <IconField value={cat.icon} onChange={(v) => patchCat(i, 'icon', v)} />
-          </Row>
-        ))}
-      </div>
-      <AddButton onClick={() => setC((x) => ({ ...x, categories: [...x.categories, { id: nextId(x.categories), label: 'فئة جديدة', icon: 'book' }] }))}>
-        إضافة فئة
-      </AddButton>
-
-      <h3 className="sub-title">الدورات ({c.items.length})</h3>
-      <div className="filter-bar" role="group" aria-label="تصفية الدورات حسب البرنامج">
-        <button type="button" className={`filter-chip ${filter === 'all' ? 'is-active' : ''}`} onClick={() => setFilter('all')}>
-          كل البرامج ({countOf('all')})
-        </button>
-        {programs.map((t) => (
-          <button
-            key={t.id}
-            type="button"
-            className={`filter-chip ${sameId(filter, t.id) ? 'is-active' : ''}`}
-            onClick={() => setFilter(t.id)}
-          >
-            {t.label} ({countOf(t.id)})
-          </button>
-        ))}
-      </div>
-      {go && (
-        <p className="field__hint">
-          لإضافة تصنيف جديد أو تعديل أسماء التصنيفات استخدم قسم{' '}
-          <button type="button" className="link-btn" onClick={() => go('filters')}>
-            «تصنيفات صفحة الدورات»
-          </button>
-          .
-        </p>
-      )}
-
-      <div className="stack">
-        {c.items.map((it, i) =>
-          filter === 'all' || sameId(it.program, filter) ? (
-            <Row key={it.id} index={i} title={it.title} onRemove={() => setC((x) => ({ ...x, items: x.items.filter((_, j) => j !== i) }))}>
-              <Grid cols={3}>
-                <TextField label="اسم الدورة" value={it.title} onChange={(v) => patchItem(i, 'title', v)} />
-                <SelectField label="البرنامج" value={String(it.program ?? '')} onChange={(v) => patchItem(i, 'program', v)} options={programOptions} />
-                <SelectField label="الفئة" value={String(it.category)} onChange={(v) => patchItem(i, 'category', Number(v) || v)} options={catOptions} />
-              </Grid>
-              <TextField label="رابط الدورة (اختياري)" dir="ltr" value={it.href} onChange={(v) => patchItem(i, 'href', v)} />
-              <IconField label="الأيقونة" value={it.icon} onChange={(v) => patchItem(i, 'icon', v)} />
-              <ImageField label="صورة بدل الأيقونة (اختياري)" value={it.image || ''} onChange={(v) => patchItem(i, 'image', v)} maxW={600} />
-              <AreaField label="وصف الدورة (يظهر في البطاقة وفي نافذة التفاصيل)" value={it.desc || ''} onChange={(v) => patchItem(i, 'desc', v)} rows={3} />
-              <Grid cols={2}>
-                <TextField label="المدة (مثال: 6 أشهر)" value={it.duration || ''} onChange={(v) => patchItem(i, 'duration', v)} />
-                <TextField label="عدد الساعات التدريبية" type="number" dir="ltr" min="0" value={it.hours ?? ''} onChange={(v) => patchItem(i, 'hours', v)} />
-              </Grid>
-              <Grid cols={2}>
-                <LinesField label="أبرز ما سيتعلمه الطالب (سطر لكل نقطة)" value={it.highlights} onChange={(v) => patchItem(i, 'highlights', v)} rows={4} />
-                <LinesField label="المتطلبات (سطر لكل نقطة)" value={it.requirements} onChange={(v) => patchItem(i, 'requirements', v)} rows={4} />
-              </Grid>
-              <BranchPicker
-                value={it}
-                branches={branchList}
-                regions={regionList}
-                onChange={(patch) => setC((x) => ({ ...x, items: x.items.map((t, j) => (j === i ? { ...t, ...patch } : t)) }))}
-              />
-            </Row>
-          ) : null
-        )}
-      </div>
-      <AddButton onClick={addCourse}>إضافة دورة</AddButton>
     </Panel>
   );
 }
@@ -1691,27 +1360,49 @@ export function AdsEditor({ notify }) {
   );
 }
 
-export const sections = [
-  { key: 'overview', label: 'نظرة عامة', icon: 'home' },
-  { key: 'site', label: 'بيانات الموقع', icon: 'globe' },
-  { key: 'hero', label: 'القسم الرئيسي', icon: 'image' },
-  { key: 'features', label: 'المميزات', icon: 'cert' },
-  { key: 'programs', label: 'البرامج والدبلومات والمقررات', icon: 'layers' },
-  { key: 'about', label: 'من نحن', icon: 'book' },
-  { key: 'stats', label: 'الإحصائيات', icon: 'chart' },
-  { key: 'gallery', label: 'معرض الصور', icon: 'image' },
-  { key: 'accreditation', label: 'الاعتماد', icon: 'cert' },
-  { key: 'testimonials', label: 'آراء الطلاب', icon: 'users' },
-  { key: 'partners', label: 'الشركاء', icon: 'users' },
-  { key: 'faq', label: 'الأسئلة الشائعة', icon: 'book' },
-  { key: 'ads', label: 'الإعلانات', icon: 'image' },
-  { key: 'courses', label: 'صفحة الدورات', icon: 'cap' },
-  { key: 'filters', label: 'تصنيفات صفحة الدورات', icon: 'layers' },
-  { key: 'labels', label: 'نصوص التبويبات والتفاصيل', icon: 'settings' },
-  { key: 'admission', label: 'قواعد القبول', icon: 'cert' },
-  { key: 'contact', label: 'قسم تواصل معنا', icon: 'mail' },
-  { key: 'branches', label: 'صفحة الفروع', icon: 'pin' },
-  { key: 'theme', label: 'ألوان الموقع', icon: 'palette' },
-  { key: 'footer', label: 'التذييل', icon: 'building' },
- 
+/*
+ * Dashboard navigation, grouped. `sections` stays a flat list (the page title is looked up in it),
+ * `sectionGroups` is what the sidebar renders.
+ */
+export const sectionGroups = [
+  {
+    title: 'عام',
+    items: [
+      { key: 'overview', label: 'نظرة عامة', icon: 'home' },
+      { key: 'site', label: 'بيانات الموقع', icon: 'globe' },
+      { key: 'theme', label: 'ألوان الموقع', icon: 'palette' },
+      { key: 'footer', label: 'التذييل', icon: 'building' },
+    ],
+  },
+  {
+    title: 'الصفحة الرئيسية',
+    items: [
+      { key: 'layout', label: 'ترتيب الأقسام', icon: 'layers' },
+      { key: 'hero', label: 'القسم الرئيسي', icon: 'image' },
+      { key: 'features', label: 'المميزات', icon: 'cert' },
+      { key: 'about', label: 'من نحن', icon: 'book' },
+      { key: 'stats', label: 'الإحصائيات', icon: 'chart' },
+      { key: 'gallery', label: 'معرض الصور', icon: 'image' },
+      { key: 'accreditation', label: 'الاعتماد', icon: 'cert' },
+      { key: 'testimonials', label: 'آراء الطلاب', icon: 'users' },
+      { key: 'partners', label: 'الشركاء', icon: 'users' },
+      { key: 'faq', label: 'الأسئلة الشائعة', icon: 'book' },
+      { key: 'contact', label: 'قسم تواصل معنا', icon: 'mail' },
+      { key: 'ads', label: 'الإعلانات', icon: 'image' },
+    ],
+  },
+  {
+    title: 'البرامج والقبول',
+    items: [
+      { key: 'programs', label: 'البرامج والدورات', icon: 'cap' },
+      { key: 'admission', label: 'قواعد القبول', icon: 'cert' },
+      { key: 'branches', label: 'الفروع', icon: 'pin' },
+    ],
+  },
+  {
+    title: 'النظام',
+    items: [{ key: 'settings', label: 'الإعدادات والنسخ الاحتياطي', icon: 'settings' }],
+  },
 ];
+
+export const sections = sectionGroups.flatMap((g) => g.items);
